@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Org Chart Dashboard — Recykal</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#F5F4F1;--surface:#FFF;--surface2:#F0EEE9;--border:#E2DED6;--border2:#C8C4BC;
+  --text:#1A1916;--text2:#6B6760;--text3:#A09C96;
+  --purple:#4F46A0;--purple-l:#ECEAFF;--purple-d:#3C3489;
+  --teal:#0E6E57;--teal-l:#E0F4EE;--teal-d:#074E3D;
+  --amber:#B06B14;--amber-l:#FEF0DC;--amber-d:#7A4A0C;
+  --green:#2F6B1A;--green-l:#EAF4E2;--green-d:#1D4510;
+  --blue:#1558A0;--blue-l:#E5EFFC;--blue-d:#0C3C72;
+  --indigo:#3730A3;--indigo-l:#EEF2FF;--indigo-d:#312E81;
+  --rose:#9D174D;--rose-l:#FCE7F3;--rose-d:#831843;
+  --red:#A32828;--red-l:#FDE8E8;
+  --r:8px;--r-lg:12px;
+  --shadow:0 2px 8px rgba(0,0,0,.08);--shadow-lg:0 8px 24px rgba(0,0,0,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:13px;line-height:1.5;min-height:100vh}
+.nav{background:var(--surface);border-bottom:1px solid var(--border);height:50px;padding:0 22px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:200}
+.logo{font-size:15px;font-weight:600;letter-spacing:-.3px;display:flex;align-items:center;gap:7px}
+.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--purple)}
+.nav-sep{width:1px;height:20px;background:var(--border)}
+.nav-sub{font-size:12px;color:var(--text2)}
+.nav-date{margin-left:auto;font-family:'DM Mono',monospace;font-size:11px;color:var(--text3)}
+.cc-bar{background:var(--surface);border-bottom:1px solid var(--border);height:44px;padding:0 22px;display:flex;align-items:center;gap:6px}
+.cc-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-right:6px}
+.cc-btn{height:26px;padding:0 13px;border-radius:20px;border:1px solid var(--border);background:transparent;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .14s}
+.cc-btn:hover{border-color:var(--border2);background:var(--surface2);color:var(--text)}
+.cc-btn.active{background:var(--text);color:#fff;border-color:var(--text)}
+.main{padding:18px 22px}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:11px 13px}
+.sc-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);font-weight:500;margin-bottom:4px}
+.sc-val{font-size:24px;font-weight:600;letter-spacing:-1px;line-height:1}
+.sc-sub{font-size:10px;color:var(--text3);margin-top:2px}
+.val-green{color:var(--teal)}.val-red{color:var(--red)}.val-amber{color:var(--amber)}
+.org-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:visible}
+.org-top{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pl-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.pl-name{font-size:14px;font-weight:600;cursor:pointer}
+.pl-name:hover{color:var(--purple)}
+.pl-desig{font-size:11px;color:var(--text2)}
+.badge{font-size:10px;font-weight:600;padding:2px 9px;border-radius:20px;letter-spacing:.03em}
+.b-cc{background:var(--purple-l);color:var(--purple-d)}
+.b-ok{background:var(--teal-l);color:var(--teal-d)}
+.b-rs{background:var(--red-l);color:var(--red)}
+.dept-row{display:flex;min-height:calc(100vh - 300px);align-items:flex-start;overflow-x:auto;overflow-y:visible}
+.dept-col{flex:1;min-width:220px;border-right:1px solid var(--border);display:flex;flex-direction:column}
+.dept-col:last-child{border-right:none}
+.dept-hd{padding:10px 13px;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:10}
+.dept-hd-row{display:flex;align-items:center;justify-content:space-between}
+.dept-title{font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px}
+.dept-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.dept-cnt{font-size:10px;font-weight:600;padding:1px 7px;border-radius:20px}
+.dept-body{padding:10px;flex:1;overflow-y:visible}
+/* person cards */
+.pcard{border:1px solid var(--border);border-radius:var(--r);padding:8px 10px;background:var(--surface);margin-bottom:5px;display:flex;align-items:center;gap:8px;transition:all .14s;position:relative}
+.pcard:hover{border-color:var(--border2);box-shadow:var(--shadow);transform:translateY(-1px)}
+.pcard.sel{border-color:var(--purple);background:var(--purple-l)}
+.pcard.resigned-card{opacity:.5}
+.p-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0}
+.p-info{flex:1;min-width:0}
+.p-name{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;display:inline}
+.p-name:hover{color:var(--purple);text-decoration:underline}
+.p-fn{font-size:10px;font-weight:600;color:var(--blue);margin-bottom:1px}
+.p-role{font-size:10px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.p-right{display:flex;align-items:center;gap:5px;flex-shrink:0}
+.expand-btn{font-size:11px;font-weight:600;background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:2px 7px;border-radius:20px;cursor:pointer;transition:all .14s;white-space:nowrap}
+.expand-btn:hover{background:var(--text);color:#fff;border-color:var(--text)}
+.chev{font-size:15px;color:var(--text3);transition:transform .18s;line-height:1;cursor:pointer}
+.chev.open{transform:rotate(90deg)}
+.status-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.drill{display:none;margin:0 0 6px 16px;border-left:2px solid var(--border);padding-left:10px}
+.drill.open{display:block}
+/* sub-team pill inside drawer */
+.fn-pill{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 8px;border-radius:20px;margin:5px 0 3px;background:var(--blue-l);color:var(--blue-d)}
+.fn-pill.green{background:var(--green-l);color:var(--green-d)}
+.fn-pill.amber{background:var(--amber-l);color:var(--amber-d)}
+.fn-pill.indigo{background:var(--indigo-l);color:var(--indigo-d)}
+.scard{display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:6px;cursor:pointer;transition:background .12s;margin-bottom:2px;border:1px solid transparent}
+.scard:hover{background:var(--surface2);border-color:var(--border)}
+.scard.sel{background:var(--purple-l);border-color:#C8C4F0}
+.scard.resigned-card{opacity:.5}
+.s-av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;flex-shrink:0}
+.s-info{flex:1;min-width:0}
+.s-name{font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;display:inline}
+.s-name:hover{color:var(--purple);text-decoration:underline}
+.s-role{font-size:10px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.s-right{display:flex;align-items:center;gap:4px;flex-shrink:0}
+.s-expand{font-size:10px;font-weight:600;background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:1px 6px;border-radius:20px;cursor:pointer;transition:all .12s}
+.s-expand:hover{background:var(--text);color:#fff;border-color:var(--text)}
+.s-chev{font-size:13px;color:var(--text3);transition:transform .18s;line-height:1;cursor:pointer}
+.s-chev.open{transform:rotate(90deg)}
+.drill2{display:none;margin:0 0 4px 14px;border-left:1.5px solid var(--border);padding-left:8px}
+.drill2.open{display:block}
+.tcard{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;transition:background .1s;margin-bottom:1px}
+.tcard:hover{background:var(--surface2)}
+.tcard.sel{background:var(--purple-l)}
+.t-av{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;flex-shrink:0;background:var(--surface2);color:var(--text2)}
+.t-name{font-size:10px;font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.t-name:hover{color:var(--purple);text-decoration:underline}
+.t-role{font-size:9px;color:var(--text3)}
+/* consultant tag */
+.ric-tag{font-size:8px;padding:1px 5px;border-radius:10px;background:#FEF0DC;color:#7A4A0C;border:1px solid #F0D5A0;flex-shrink:0;margin-left:2px}
+/* tooltip */
+.tip{position:fixed;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-lg);width:260px;z-index:500;overflow:hidden;animation:tipIn .14s ease;pointer-events:auto}
+@keyframes tipIn{from{opacity:0;transform:translateY(4px) scale(.97)}to{opacity:1;transform:none}}
+.tip-head{padding:14px 14px 10px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px}
+.tip-av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
+.tip-name{font-size:14px;font-weight:600;margin-bottom:2px;letter-spacing:-.2px}
+.tip-desig{font-size:10px;color:var(--text2);line-height:1.4}
+.tip-close{margin-left:auto;width:22px;height:22px;border-radius:50%;border:1px solid var(--border);background:transparent;font-size:14px;color:var(--text3);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;transition:all .12s}
+.tip-close:hover{background:var(--surface2);color:var(--text)}
+.tip-body{padding:10px 14px}
+.tip-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px;gap:8px}
+.tip-row:last-child{border-bottom:none}
+.tip-key{color:var(--text2);flex-shrink:0}
+.tip-val{color:var(--text);font-weight:500;text-align:right;font-family:'DM Mono',monospace;font-size:10px}
+.tip-val.plain{font-family:'DM Sans',sans-serif;font-size:11px}
+/* avatars */
+.av-purple{background:var(--purple);color:#ECEAFF}
+.av-teal{background:var(--teal);color:#E0F4EE}
+.av-amber{background:var(--amber);color:#FEF0DC}
+.av-green{background:var(--green);color:#EAF4E2}
+.av-gray{background:#5A5652;color:#F0EEE9}
+.av-blue{background:var(--blue);color:#E5EFFC}
+.av-indigo{background:var(--indigo);color:#EEF2FF}
+.dept-foot{border-top:1px solid var(--border);background:var(--surface);padding:10px 13px;position:sticky;bottom:0;z-index:10}
+.kra-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:6px;display:flex;align-items:center;justify-content:space-between}
+.kra-add-btn{font-size:10px;padding:1px 8px;border-radius:20px;border:1px dashed var(--border2);background:transparent;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .14s}
+.kra-add-btn:hover{border-color:var(--purple);color:var(--purple);background:var(--purple-l)}
+.kra-item{display:flex;align-items:center;gap:6px;padding:4px 7px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);margin-bottom:4px;font-size:11px;color:var(--text2);cursor:pointer;transition:all .14s}
+.kra-item:hover{border-color:var(--border2);background:var(--surface)}
+.kra-item-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.kra-empty{font-size:10px;color:var(--text3);text-align:center;padding:8px 4px;border:1px dashed var(--border);border-radius:6px;cursor:pointer;transition:all .14s}
+.kra-empty:hover{border-color:var(--purple);color:var(--purple);background:var(--purple-l)}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:10px}
+</style>
+</head>
+<body>
+<div class="nav">
+  <div class="logo"><span class="logo-dot"></span>Recykal</div>
+  <div class="nav-sep"></div>
+  <div class="nav-sub">Org Chart Dashboard</div>
+  <div class="nav-date" id="nav-date"></div>
+</div>
+<div class="cc-bar">
+  <span class="cc-label">Cost Center</span>
+  <button class="cc-btn active" onclick="selectCC(this,'EPR')">EPR</button>
+  <button class="cc-btn" onclick="selectCC(this,'AFR')">AFR</button>
+  <button class="cc-btn" onclick="selectCC(this,'TBD')">TBD</button>
+  <button class="cc-btn" onclick="selectCC(this,'AWF')">AWF</button>
+  <button class="cc-btn" onclick="selectCC(this,'OC')">Onboarding &amp; Collection</button>
+  <button class="cc-btn" onclick="selectCC(this,'Facility')">Facility Mgmt</button>
+  <button class="cc-btn" onclick="selectCC(this,'Compliance')">Compliance</button>
+  <button class="cc-btn" onclick="selectCC(this,'Finance')">Finance &amp; Legal</button>
+  <button class="cc-btn" onclick="selectCC(this,'PC')">P&amp;C</button>
+  <button class="cc-btn" onclick="selectCC(this,'Technology')">Technology</button>
+  <button class="cc-btn" onclick="selectCC(this,'Retearn')">Retearn</button>
+  <button class="cc-btn" onclick="selectCC(this,'Infra')">Infra Business</button>
+</div>
+<div class="main">
+  <div class="stats" id="stats"></div>
+  <div class="org-wrap">
+    <div class="org-top" id="org-top"></div>
+    <div class="dept-row" id="dept-row"></div>
+  </div>
+</div>
+<div class="tip" id="tip" style="display:none">
+  <div class="tip-head" id="tip-head"></div>
+  <div class="tip-body" id="tip-body"></div>
+</div>
+<script>
+// ══════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════
+const EMP = [
+  // EPR — 51 people per Sheet2_1.csv (New Cost Centre = EPR)
+  // ── Sales ──
+  {id:"RT0411",name:"Srikrishna B",doj:"01-Jun-22",desig:"Senior Director - Sustainability Solutions",level:"L1",mgr:"Ekta Narain",mgrid:"RT0130",status:"Active",cc:"EPR",dept:"P&L Head",sub:"",cost:5191500},
+  {id:"RT0796",name:"Suraj Sundar",doj:"17-Feb-25",desig:"General Manager",level:"L2",mgr:"Srikrishna B",mgrid:"RT0411",status:"Active",cc:"EPR",dept:"Sales",sub:"",cost:3502400},
+  {id:"RT0227",name:"Islavath Manasa Pamar",doj:"08-Mar-21",desig:"Senior Manager - EPR EBT",level:"L3",mgr:"Srikrishna B",mgrid:"RT0411",status:"Active",cc:"EPR",dept:"Sales",sub:"",cost:1918100},
+  {id:"RT0515",name:"Radheshyam Bhattar",doj:"09-Jan-23",desig:"Senior Manager - EPR Plastic",level:"L3",mgr:"Srikrishna B",mgrid:"RT0411",status:"Active",cc:"EPR",dept:"Sales",sub:"",cost:2370500},
+  {id:"RT0578",name:"Sarang Arvind Jadhav",doj:"17-Jul-23",desig:"Manager - EPR EBT",level:"L4",mgr:"Srikrishna B",mgrid:"RT0411",status:"Active",cc:"EPR",dept:"Sales",sub:"",cost:2580200},
+  {id:"RT0947",name:"Ratan Sharma",doj:"17-Nov-25",desig:"Manager",level:"L4",mgr:"Suraj Sundar",mgrid:"RT0796",status:"Active",cc:"EPR",dept:"Sales",sub:"",cost:1327813},
+  {id:"RT0759",name:"Nikhil M",doj:"18-Nov-24",desig:"Manager",level:"L4",mgr:"Suraj Sundar",mgrid:"RT0796",status:"Active",cc:"EPR",dept:"Sales",sub:"",cost:1530100},
+  {id:"RT0409",name:"Guntamukkala VN Surya Akhilesh",doj:"01-Jun-22",desig:"Manager - EPR Plastic",level:"L4",mgr:"Islavath Manasa Pamar",mgrid:"RT0227",status:"Active",cc:"EPR",dept:"Sales",sub:"",cost:1209500},
+  {id:"RT0408",name:"Saganti Akhil",doj:"01-Jun-22",desig:"Assistant Manager",level:"L4",mgr:"Islavath Manasa Pamar",mgrid:"RT0227",status:"Active",cc:"EPR",dept:"Sales",sub:"",cost:866500},
+  {id:"RT0698",name:"Vrinda Somani",doj:"17-Jun-24",desig:"Assistant Manager",level:"L4",mgr:"Radheshyam Bhattar",mgrid:"RT0515",status:"Active",cc:"EPR",dept:"Sales",sub:"",cost:1314600},
+  {id:"RT0667",name:"Shoubhik Suprotim Pakrasi",doj:"08-Apr-24",desig:"Manager",level:"L4",mgr:"Radheshyam Bhattar",mgrid:"RT0515",status:"Active",cc:"EPR",dept:"Sales",sub:"",cost:2341800},
+  {id:"RT0678",name:"Rohit Samant",doj:"06-May-24",desig:"Assistant Manager",level:"L4",mgr:"Sarang Arvind Jadhav",mgrid:"RT0578",status:"Active",cc:"EPR",dept:"Sales",sub:"",cost:1290800},
+  {id:"RT0779",name:"Pulkit Singhal",doj:"06-Jan-25",desig:"Assistant Manager",level:"L4",mgr:"Sarang Arvind Jadhav",mgrid:"RT0578",status:"Active",cc:"EPR",dept:"Sales",sub:"",cost:1358900},
+  {id:"RT0908",name:"Adity Rana",doj:"01-Sep-25",desig:"Assistant Manager",level:"L4",mgr:"Sarang Arvind Jadhav",mgrid:"RT0578",status:"Active",cc:"EPR",dept:"Sales",sub:"",cost:1300000},
+  // ── Operations — Plastic (Kumara Swamy) ──
+  {id:"RT0958",name:"Kumara Swamy Chennamgari",doj:"22-Dec-25",desig:"General Manager",level:"L2",mgr:"Ekta Narain",mgrid:"RT0130",status:"Active",cc:"EPR",dept:"Operations",sub:"Plastic",cost:4000000},
+  {id:"RT0729",name:"L Richard",doj:"03-Sep-24",desig:"Assistant Manager",level:"L4",mgr:"Kumara Swamy Chennamgari",mgrid:"RT0958",status:"Active",cc:"EPR",dept:"Operations",sub:"Plastic",cost:1087000},
+  {id:"RT0928",name:"Sirikonda Rasagna",doj:"01-Oct-25",desig:"AM - EPR Plastic",level:"L4",mgr:"Kumara Swamy Chennamgari",mgrid:"RT0958",status:"Active",cc:"EPR",dept:"Operations",sub:"Plastic",cost:600060},
+  {id:"RT0925",name:"Boini Sai Ram",doj:"01-Oct-25",desig:"AM - EPR Plastic",level:"L4",mgr:"Kumara Swamy Chennamgari",mgrid:"RT0958",status:"Active",cc:"EPR",dept:"Operations",sub:"Plastic",cost:601980},
+  {id:"RT0418",name:"Malyala Induja",doj:"06-Jun-22",desig:"Senior Executive",level:"L5",mgr:"Kumara Swamy Chennamgari",mgrid:"RT0958",status:"Active",cc:"EPR",dept:"Operations",sub:"Plastic",cost:613400},
+  {id:"FFIRT00284",name:"Anusha B M",doj:"15-Jul-24",desig:"Senior Executive - EPR Plastic",level:"L5",mgr:"Kumara Swamy Chennamgari",mgrid:"RT0958",status:"Active",cc:"EPR",dept:"Operations",sub:"Plastic",cost:500128},
+  {id:"FFIRT00338",name:"Reenke Kumari",doj:"24-Feb-25",desig:"Senior Executive",level:"L5",mgr:"L Richard",mgrid:"RT0729",status:"Active",cc:"EPR",dept:"Operations",sub:"Plastic",cost:550000},
+  {id:"FFIRT00370",name:"Gadde Nayana Sphoorthi",doj:"03-Jun-25",desig:"Executive",level:"L5",mgr:"Malyala Induja",mgrid:"RT0418",status:"Active",cc:"EPR",dept:"Operations",sub:"Plastic",cost:350000},
+  {id:"FFIRT00297",name:"Kommanaboina Sneha",doj:"19-Aug-24",desig:"Executive",level:"L5",mgr:"Sirikonda Rasagna",mgrid:"RT0928",status:"Active",cc:"EPR",dept:"Operations",sub:"Plastic",cost:390600},
+  {id:"FFIRT00482",name:"Pramod Kumar Sharma",doj:"06-Oct-25",desig:"Executive",level:"L5",mgr:"Sirikonda Rasagna",mgrid:"RT0928",status:"Active",cc:"EPR",dept:"Operations",sub:"Plastic",cost:450000},
+  {id:"FFIRT00285",name:"Gajjala Sowmya",doj:"08-Jul-24",desig:"Executive",level:"L5",mgr:"Boini Sai Ram",mgrid:"RT0925",status:"Resigned",cc:"EPR",dept:"Operations",sub:"Plastic"},
+  // ── Operations — EBT (Kiran → Sai Kiran) ──
+  {id:"RT0265",name:"Sai Kiran Babu Ranga",doj:"16-Aug-21",desig:"Assistant General Manager",level:"L2",mgr:"Kiran Vaidya",mgrid:"RT0128",status:"Active",cc:"EPR",dept:"Operations",sub:"EBT",deptHead:true,cost:2504100},
+  {id:"RT0658",name:"Kappala Sai Kumar",doj:"04-Mar-24",desig:"Manager - EPR EBT",level:"L4",mgr:"Sai Kiran Babu Ranga",mgrid:"RT0265",status:"Active",cc:"EPR",dept:"Operations",sub:"EBT",cost:813400},
+  {id:"RT0175",name:"Mohd Maimood Pasha",doj:"01-May-20",desig:"Assistant Manager",level:"L4",mgr:"Sai Kiran Babu Ranga",mgrid:"RT0265",status:"Active",cc:"EPR",dept:"Operations",sub:"EBT",cost:750000},
+  {id:"RT0738",name:"S Sravan",doj:"01-Oct-24",desig:"Assistant Manager",level:"L4",mgr:"Sai Kiran Babu Ranga",mgrid:"RT0265",status:"Active",cc:"EPR",dept:"Operations",sub:"EBT",cost:539400},
+  {id:"FFIRT00223",name:"V Sampath Kumar",doj:"06-Nov-23",desig:"Executive",level:"L5",mgr:"Kappala Sai Kumar",mgrid:"RT0658",status:"Active",cc:"EPR",dept:"Operations",sub:"EBT",cost:354020},
+  {id:"FFIRT00221",name:"Bhupathi Vijaynath",doj:"01-Nov-23",desig:"Executive",level:"L5",mgr:"Kappala Sai Kumar",mgrid:"RT0658",status:"Active",cc:"EPR",dept:"Operations",sub:"EBT",cost:399700},
+  {id:"FFIRT00046",name:"Kommula Anil Kumar",doj:"06-Sep-22",desig:"Senior Executive",level:"L5",mgr:"Kappala Sai Kumar",mgrid:"RT0658",status:"Active",cc:"EPR",dept:"Operations",sub:"EBT",cost:460000},
+  {id:"RT0238",name:"Rama Krishna M",doj:"19-Apr-21",desig:"AM - EPR EBT",level:"L4",mgr:"Kappala Sai Kumar",mgrid:"RT0658",status:"Active",cc:"EPR",dept:"Operations",sub:"EBT",cost:637000},
+  // ── Audit & Compliance (Kumara → Indira) ──
+  {id:"RT0323",name:"Indira Suresh",doj:"13-Dec-21",desig:"Senior Manager",level:"L3",mgr:"Kumara Swamy Chennamgari",mgrid:"RT0958",status:"Active",cc:"EPR",dept:"Audit & Compliance",sub:"",deptHead:true,cost:1181200},
+  {id:"RT0335",name:"Dhayanandha G",doj:"12-Jan-22",desig:"Manager - EPR Plastic",level:"L4",mgr:"Indira Suresh",mgrid:"RT0323",status:"Active",cc:"EPR",dept:"Compliance",sub:"Plastic",cost:886200},
+  {id:"RT0301",name:"Renu Kumari",doj:"01-Nov-21",desig:"Manager - EPR EBT",level:"L4",mgr:"Indira Suresh",mgrid:"RT0323",status:"Active",cc:"EPR",dept:"Compliance",sub:"EBT",cost:700600},
+  {id:"RT0905",name:"Shaik Ishaq Pasha",doj:"01-Sep-25",desig:"Assistant Manager",level:"L4",mgr:"Indira Suresh",mgrid:"RT0323",status:"Active",cc:"EPR",dept:"Audit",sub:"Plastic",cost:1150000},
+  {id:"FFIRT00092",name:"Kakkerla Alekhya",doj:"01-Feb-23",desig:"Senior Executive - QC",level:"L5",mgr:"Indira Suresh",mgrid:"RT0323",status:"Active",cc:"EPR",dept:"Compliance",sub:"Plastic",cost:500929},
+  {id:"FFIRT00093",name:"Kallem Gouthami",doj:"01-Feb-23",desig:"Senior Executive - QC",level:"L5",mgr:"Indira Suresh",mgrid:"RT0323",status:"Active",cc:"EPR",dept:"Compliance",sub:"Plastic",cost:626080},
+  {id:"FFIRT00116",name:"Kamma Venkata Siva Prasad",doj:"03-Apr-23",desig:"Senior Executive - EPR Plastic",level:"L5",mgr:"Dhayanandha G",mgrid:"RT0335",status:"Active",cc:"EPR",dept:"Compliance",sub:"Plastic",cost:453600},
+  {id:"FFIRT00379",name:"Rajesh Dharavath",doj:"01-Jul-25",desig:"Executive",level:"L5",mgr:"Dhayanandha G",mgrid:"RT0335",status:"Active",cc:"EPR",dept:"Compliance",sub:"Plastic",cost:90137},
+  {id:"FFIRT00348",name:"Landa Bhuvneswari",doj:"24-Mar-25",desig:"Executive",level:"L5",mgr:"Dhayanandha G",mgrid:"RT0335",status:"Active",cc:"EPR",dept:"Compliance",sub:"Plastic",cost:400000},
+  {id:"FFIRT00321",name:"Annavajjala Kankshith Rao",doj:"02-Jan-25",desig:"Executive",level:"L5",mgr:"Dhayanandha G",mgrid:"RT0335",status:"Active",cc:"EPR",dept:"Compliance",sub:"Plastic",cost:350000},
+  {id:"FFIRT00298",name:"Arun K",doj:"03-Sep-24",desig:"Executive",level:"L5",mgr:"Renu Kumari",mgrid:"RT0301",status:"Active",cc:"EPR",dept:"Compliance",sub:"EBT",cost:425520},
+  {id:"RT0927",name:"Mohammad Saleem",doj:"01-Oct-25",desig:"AM - Compliance",level:"L4",mgr:"Renu Kumari",mgrid:"RT0301",status:"Active",cc:"EPR",dept:"Compliance",sub:"EBT",cost:480260},
+  {id:"FFIRT00272",name:"Gottipalli Supriya",doj:"17-Jun-24",desig:"Executive",level:"L5",mgr:"Renu Kumari",mgrid:"RT0301",status:"Active",cc:"EPR",dept:"Compliance",sub:"EBT",cost:483750},
+  // ── Capacity Building (Kiran → Anusuya → team) ──
+  {id:"RT0128",name:"Kiran Vaidya",doj:"01-Apr-19",desig:"AVP - Capacity Building",level:"L1",mgr:"Ekta Narain",mgrid:"RT0130",status:"Active",cc:"EPR",dept:"Capacity Building",sub:"Head",cost:4752100},
+  {id:"RT0114",name:"Anusuya Swain",doj:"01-Jan-20",desig:"General Manager",level:"L2",mgr:"Kiran Vaidya",mgrid:"RT0128",status:"Active",cc:"EPR",dept:"Capacity Building",sub:"Plastic",cost:3326900},
+  {id:"RT0709",name:"Aparna Sinha",doj:"15-Jul-24",desig:"Assistant Manager",level:"L4",mgr:"Anusuya Swain",mgrid:"RT0114",status:"Active",cc:"EPR",dept:"Capacity Building",sub:"Plastic",cost:1306000},
+  {id:"FFIRT00484",name:"Kallakuri Ram Charan",doj:"13-Oct-25",desig:"Senior Executive",level:"L5",mgr:"Anusuya Swain",mgrid:"RT0114",status:"Active",cc:"EPR",dept:"Capacity Building",sub:"Plastic",cost:661875},
+  {id:"FFIRT00495",name:"Sudhanshu Mishra",doj:"22-Dec-25",desig:"Executive",level:"L5",mgr:"Aparna Sinha",mgrid:"RT0709",status:"Active",cc:"EPR",dept:"Capacity Building",sub:"Plastic",cost:550000},
+
+  // TBD
+  {id:"RT0516",name:"Nikhil Agarwal",doj:"09-Jan-23",desig:"Senior Manager - Strategy",level:"L3",mgr:"Anirudha Jalan",mgrid:"RT0091",status:"Active",cc:"TBD",dept:"TBD",sub:"",cost:3031900},
+  {id:"FFIRT00344",name:"Saurav Ramdas Gaonkar",doj:"05-May-25",desig:"Senior Executive - ESG",level:"L5",mgr:"Nikhil Agarwal",mgrid:"RT0516",status:"Active",cc:"TBD",dept:"TBD",sub:"",cost:750000},
+  {id:"FFIRT00307",name:"Chitij Katayan",doj:"04-Nov-24",desig:"Executive",level:"L5",mgr:"Nikhil Agarwal",mgrid:"RT0516",status:"Active",cc:"TBD",dept:"TBD",sub:"",cost:500000},
+  {id:"RT0637",name:"Priya Kumari",doj:"18-Dec-23",desig:"Manager - EPR Plastic",level:"L4",mgr:"Nikhil Agarwal",mgrid:"RT0516",status:"Active",cc:"TBD",dept:"TBD",sub:"",cost:1125000},
+  // AWF
+  {id:"FFIRT00278",name:"Aaryan Vijay Kumar",doj:"24-Jun-24",desig:"Senior Executive - Rethink+",level:"L5",mgr:"Ila Florance Joseph",mgrid:"RWF0092",status:"Active",cc:"AWF",dept:"AWF",sub:"",cost:632500},
+  // FINANCE & LEGAL
+  {id:"RT0488",name:"Raveendra Babu Gaddam",doj:"01-Nov-22",desig:"Director - Finance",level:"L1",mgr:"Vijay Kumar Vanparthi",mgrid:"VIRT_VIJAY",status:"Active",cc:"Finance",dept:"Finance",sub:"Head"},
+  {id:"RT0360",name:"Ishant Baranwal",doj:"28-Feb-22",desig:"Company Secretary & Compliance Officer",level:"L1",mgr:"Vijay Kumar Vanparthi",mgrid:"VIRT_VIJAY",status:"Active",cc:"Finance",dept:"Legal",sub:"Legal & Secretarial"},
+  // Veerendra's team — OPEX CAPEX TDS
+  {id:"RT0537",name:"Palagiri Veerendra Kumar Reddy",doj:"10-Apr-23",desig:"Manager - Finance",level:"L4",mgr:"Raveendra Babu Gaddam",mgrid:"RT0488",status:"Active",cc:"Finance",dept:"Finance",sub:"OPEX & CAPEX & TDS",fnLabel:"OPEX · CAPEX · TDS"},
+  {id:"RT0561",name:"P Vijaya Sree",doj:"01-Jun-23",desig:"Assistant Manager - Finance",level:"L4",mgr:"Palagiri Veerendra Kumar Reddy",mgrid:"RT0537",status:"Active",cc:"Finance",dept:"Finance",sub:"OPEX & CAPEX",fnLabel:"OPEX & CAPEX"},
+  {id:"RIC00227",name:"Soorepally Sindhu Sri",doj:"03-Nov-25",desig:"Consultant",level:"L5",mgr:"Palagiri Veerendra Kumar Reddy",mgrid:"RT0537",status:"Active",cc:"Finance",dept:"Finance",sub:"OPEX & CAPEX",fnLabel:"OPEX & CAPEX",isConsultant:true},
+  {id:"RT0991",name:"Revoori Sai Krishna",doj:"01-Apr-26",desig:"Executive",level:"L5",mgr:"Palagiri Veerendra Kumar Reddy",mgrid:"RT0537",status:"Active",cc:"Finance",dept:"Finance",sub:"TDS",fnLabel:"TDS"},
+  {id:"RIC00222",name:"Mangala Swetha",doj:"01-Sep-25",desig:"Consultant",level:"L5",mgr:"Palagiri Veerendra Kumar Reddy",mgrid:"RT0537",status:"Active",cc:"Finance",dept:"Finance",sub:"Employee Claims",fnLabel:"Employee Claims",isConsultant:true},
+  // Nagesh's team — EPR & Salaries
+  {id:"RT0185",name:"Nageshwar Rao Karra",doj:"01-Aug-20",desig:"Manager",level:"L4",mgr:"Raveendra Babu Gaddam",mgrid:"RT0488",status:"Active",cc:"Finance",dept:"Finance",sub:"EPR & Salaries",fnLabel:"EPR & Employee Salaries"},
+  {id:"RT0560",name:"Gaddameedi Santosh Kumar",doj:"01-Jun-23",desig:"Senior Executive",level:"L5",mgr:"Nageshwar Rao Karra",mgrid:"RT0185",status:"Active",cc:"Finance",dept:"Finance",sub:"Plastic - EPR",fnLabel:"Plastic EPR"},
+  {id:"RT0359",name:"Chittyreddy Shiva Prasad Reddy",doj:"22-Feb-22",desig:"Assistant Manager - Finance",level:"L4",mgr:"Nageshwar Rao Karra",mgrid:"RT0185",status:"Active",cc:"Finance",dept:"Finance",sub:"EPR-EBT & Others",fnLabel:"EPR-EBT & Other Categories"},
+  {id:"RIC00233",name:"Akshay N R",doj:"02-Feb-26",desig:"Consultant",level:"L5",mgr:"Nageshwar Rao Karra",mgrid:"RT0185",status:"Active",cc:"Finance",dept:"Finance",sub:"Vendor Payments",fnLabel:"Vendor Payments",isConsultant:true},
+  {id:"RT0742",name:"Mahima Agarwal",doj:"01-Oct-24",desig:"Senior Executive",level:"L5",mgr:"Nageshwar Rao Karra",mgrid:"RT0185",status:"Resigned",cc:"Finance",dept:"Finance",sub:"Vendor Payments",fnLabel:"Vendor Payments"},
+  {id:"RT0287",name:"Nadadur Sridharan Srikanth",doj:"25-Oct-21",desig:"Manager - EPR Plastic",level:"L4",mgr:"Nageshwar Rao Karra",mgrid:"RT0185",status:"Active",cc:"Finance",dept:"Finance",sub:"EPR - Invoicing",fnLabel:"EPR Invoicing"},
+  {id:"RT0374",name:"Arjit Kulkarni",doj:"01-Apr-22",desig:"Executive - Operations",level:"L5",mgr:"Nageshwar Rao Karra",mgrid:"RT0185",status:"Active",cc:"Finance",dept:"Finance",sub:"EPR & Salaries",fnLabel:""},
+  // Sravan's team — Treasury & Payments
+  {id:"RT0317",name:"Tummala Sravan Kumar",doj:"01-Dec-21",desig:"Manager - Finance",level:"L4",mgr:"Raveendra Babu Gaddam",mgrid:"RT0488",status:"Active",cc:"Finance",dept:"Finance",sub:"Treasury",fnLabel:"Treasury & Payments"},
+  {id:"RT0854",name:"Vasabathula Sai Durga",doj:"01-Jul-25",desig:"Executive",level:"L5",mgr:"Tummala Sravan Kumar",mgrid:"RT0317",status:"Active",cc:"Finance",dept:"Finance",sub:"Payments",fnLabel:"Payments"},
+  {id:"RT0743",name:"Madhu Gattikoppula",doj:"01-Oct-24",desig:"Senior Executive",level:"L5",mgr:"Tummala Sravan Kumar",mgrid:"RT0317",status:"Active",cc:"Finance",dept:"Finance",sub:"Customer Receipts",fnLabel:"Customer Receipts"},
+  {id:"RIC00228",name:"Sabbavarapu Pavani",doj:"03-Nov-25",desig:"Consultant",level:"L5",mgr:"Tummala Sravan Kumar",mgrid:"RT0317",status:"Active",cc:"Finance",dept:"Finance",sub:"Marketplace Payments",fnLabel:"Marketplace Payments",isConsultant:true},
+  {id:"RT0960",name:"Syed Imaduddin",doj:"01-Jan-26",desig:"Executive",level:"L5",mgr:"Tummala Sravan Kumar",mgrid:"RT0317",status:"Active",cc:"Finance",dept:"Finance",sub:"Marketplace Payments",fnLabel:"Marketplace Payments"},
+  // Pavanag — MIS & Expenses (no team)
+  {id:"RT0982",name:"Udayagiri Pavanag",doj:"23-Feb-26",desig:"Manager",level:"L4",mgr:"Raveendra Babu Gaddam",mgrid:"RT0488",status:"Active",cc:"Finance",dept:"Finance",sub:"MIS & Expenses",fnLabel:"MIS & Expenses"},
+  // Ravi Deora — direct to Raveendra
+  {id:"FFIRT00544",name:"Ravi Deora",doj:"25-May-26",desig:"Senior Executive",level:"L5",mgr:"Raveendra Babu Gaddam",mgrid:"RT0488",status:"Active",cc:"Finance",dept:"Finance",sub:"",fnLabel:""},
+  // Legal — Ishant's team
+  {id:"RT0655",name:"Mohamed Jamirul",doj:"01-Mar-24",desig:"Legal Associate",level:"L5",mgr:"Ishant Baranwal",mgrid:"RT0360",status:"Active",cc:"Finance",dept:"Legal",sub:"Legal & Secretarial"},
+  {id:"RT0970",name:"Priyance Sarda",doj:"06-Jan-26",desig:"Senior Executive - Asst Company Secretary",level:"L5",mgr:"Ishant Baranwal",mgrid:"RT0360",status:"Active",cc:"Finance",dept:"Legal",sub:"Legal & Secretarial"},
+  {id:"RT1003",name:"Oza Bhavik Atulkumar",doj:"25-May-26",desig:"Senior Manager",level:"L3",mgr:"Ishant Baranwal",mgrid:"RT0360",status:"Active",cc:"Finance",dept:"Legal",sub:"Legal & Secretarial"},
+  {id:"RIC00239",name:"Sambhava Bhatia",doj:"20-Apr-26",desig:"Intern",level:"L5",mgr:"Mohamed Jamirul",mgrid:"RT0655",status:"Active",cc:"Finance",dept:"Legal",sub:"Legal & Secretarial",isConsultant:true},
+  // ── P&C ──────────────────────────────────────────────────
+  {id:"RT0377",name:"Swati Purohit",doj:"04-Apr-22",desig:"Director - People & Culture",mgr:"Abhishek Arvind Deshpande",mgrid:"RT0005",status:"Active",cc:"PC",dept:"P&C",sub:"",cost:3317000},
+  {id:"RT0420",name:"Nohitha Cheva",doj:"13-Jun-22",desig:"Senior Manager - Talent Acquisition",mgr:"Swati Purohit",mgrid:"RT0377",status:"Active",cc:"PC",dept:"Talent Acquisition",sub:"",cost:2302200},
+  {id:"RT0531",name:"Anjali Gupta",doj:"06-Mar-23",desig:"Senior Manager - L&D",mgr:"Swati Purohit",mgrid:"RT0377",status:"Active",cc:"PC",dept:"Learning & Engagement",sub:"",cost:2393300},
+  {id:"RT0781",name:"Devesh Bahaddur",doj:"06-Jan-25",desig:"AM - Business Partner",mgr:"Swati Purohit",mgrid:"RT0377",status:"Active",cc:"PC",dept:"Business Partner",sub:"",cost:1500000},
+  {id:"RT0917",name:"V Vijaya Kumar",doj:"24-Sep-25",desig:"Senior Manager - Compensation & Benefits",mgr:"Swati Purohit",mgrid:"RT0377",status:"Active",cc:"PC",dept:"Compensation & Benefits",sub:"",cost:2250000},
+  {id:"RT0992",name:"Shaminn Chirstopher Santiago",doj:"06-Apr-26",desig:"Assistant Manager - Business Partner",mgr:"Swati Purohit",mgrid:"RT0377",status:"Active",cc:"PC",dept:"Business Partner",sub:"",cost:1972603},
+  {id:"RT0993",name:"Jadi Shashikanth",doj:"06-Apr-26",desig:"Senior Manager - Business Partner",mgr:"Swati Purohit",mgrid:"RT0377",status:"Active",cc:"PC",dept:"Business Partner",sub:"",cost:2761644},
+  {id:"RT0452",name:"Ravuru Sravani",doj:"01-Aug-22",desig:"Assistant Manager",mgr:"Nohitha Cheva",mgrid:"RT0420",status:"Active",cc:"PC",dept:"Talent Acquisition",sub:"",cost:1132600},
+  {id:"RT0628",name:"G Ravalika",doj:"15-Nov-23",desig:"Talent Acquisition Specialist",mgr:"Nohitha Cheva",mgrid:"RT0420",status:"Active",cc:"PC",dept:"Talent Acquisition",sub:"",cost:712800},
+  {id:"RT0804",name:"Shreya Gupta",doj:"03-Mar-25",desig:"Talent Acquisition Specialist",mgr:"Nohitha Cheva",mgrid:"RT0420",status:"Active",cc:"PC",dept:"Talent Acquisition",sub:"",cost:1000000},
+  {id:"RT0987",name:"Medapati Surya Prakash Reddy",doj:"16-Mar-26",desig:"Assistant Manager",mgr:"Nohitha Cheva",mgrid:"RT0420",status:"Active",cc:"PC",dept:"Talent Acquisition",sub:"",cost:1500000},
+  {id:"RT0924",name:"Aladasu Anil Kumar",doj:"22-Oct-25",desig:"Talent Acquisition Specialist",mgr:"Nohitha Cheva",mgrid:"RT0420",status:"Active",cc:"PC",dept:"Learning & Engagement",sub:"",cost:1050000},
+  {id:"RT0957",name:"Sambaraju Sirivalli",doj:"19-Dec-25",desig:"Talent Acquisition Specialist",mgr:"Medapati Surya Prakash Reddy",mgrid:"RT0987",status:"Active",cc:"PC",dept:"Talent Acquisition",sub:"",cost:500000},
+  {id:"RT0904",name:"Papisetty Sahithi Sri",doj:"19-Aug-25",desig:"Executive",mgr:"Anjali Gupta",mgrid:"RT0531",status:"Active",cc:"PC",dept:"Learning & Engagement",sub:"",cost:500000},
+  {id:"RT0937",name:"Jane Monica Veeraswamy",doj:"03-Nov-25",desig:"Senior Executive",mgr:"Anjali Gupta",mgrid:"RT0531",status:"Active",cc:"PC",dept:"Learning & Engagement",sub:"",cost:600000},
+  {id:"RT1002",name:"Dodigarla Ganga Raju",doj:"18-May-26",desig:"Assistant Manager",mgr:"V Vijaya Kumar",mgrid:"RT0917",status:"Active",cc:"PC",dept:"Compensation & Benefits",sub:"",cost:827671},
+  // ── TECHNOLOGY ──
+  {id:"RT0006",name:"Ramesh Babu Lingam",doj:"7-Apr-16",desig:"Engineering Manager",mgr:"Hari Kiran Kandrakota",mgrid:"RT0345",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:2444200},
+  {id:"RT0020",name:"Sandeep Dillerao",doj:"14-Sep-16",desig:"Engineering Manager",mgr:"Hari Kiran Kandrakota",mgrid:"RT0345",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:3163400},
+  {id:"RT0055",name:"Hari Prasad Pithani",doj:"05-Jun-17",desig:"Senior UI/UX Designer",mgr:"Amruta Patil",mgrid:"RT0366",status:"Active",cc:"Technology",dept:"Product",sub:"",cost:1874900},
+  {id:"RT0170",name:"Munaga Sravanthi",doj:"02-Mar-20",desig:"Lead Engineer",mgr:"Hari Kiran Kandrakota",mgrid:"RT0345",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:2470100},
+  {id:"RT0176",name:"Jarupula Nagaraju",doj:"01-May-20",desig:"QA Engineer",mgr:"Rajesh Devavarapu",mgrid:"RT0754",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:859000},
+  {id:"RT0186",name:"Mohammed Ibrahim",doj:"05-Aug-20",desig:"Implementation Specialist",mgr:"Sneha Budhia",mgrid:"RT0036",status:"Active",cc:"Technology",dept:"Product",sub:"",cost:1696200},
+  {id:"RT0234",name:"Manoj Kumar S",doj:"07-Apr-21",desig:"Senior Product Manager",mgr:"Sneha Budhia",mgrid:"RT0036",status:"Active",cc:"Technology",dept:"Product",sub:"",cost:3000000},
+  {id:"RT0240",name:"Appalaraju V",doj:"26-Apr-21",desig:"Executive",mgr:"Mohammed Ibrahim",mgrid:"RT0186",status:"Active",cc:"Technology",dept:"Product",sub:"",cost:410200},
+  {id:"RT0260",name:"Sanket Waghmare",doj:"09-Aug-21",desig:"Senior Engineering Manager AI - Technology",mgr:"Vikram Loka Prabakar",mgrid:"RT0222",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:3680000},
+  {id:"RT0267",name:"Pasupuleti Sukesh Krishna",doj:"20-Aug-21",desig:"Engineering Manager - Technology",mgr:"Vikram Loka Prabakar",mgrid:"RT0222",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:2784300},
+  {id:"RT0325",name:"Jaswinder Singh",doj:"21-Dec-21",desig:"Senior QA Engineer",mgr:"Nimmalapudi Santhosh Kumar",mgrid:"RT0509",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:1620300},
+  {id:"RT0345",name:"Hari Kiran Kandrakota",doj:"24-Jan-22",desig:"Senior Director - Engineering",mgr:"Vikram Loka Prabakar",mgrid:"RT0222",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:4662600},
+  {id:"RT0357",name:"Yampati Venkata Shiva Reddy",doj:"21-Feb-22",desig:"Group Product Manager",mgr:"Sneha Budhia",mgrid:"RT0036",status:"Active",cc:"Technology",dept:"Product",sub:"",cost:2910400},
+  {id:"RT0366",name:"Amruta Patil",doj:"7-Mar-22",desig:"Manager - UI/UX Designer",mgr:"Sneha Budhia",mgrid:"RT0036",status:"Active",cc:"Technology",dept:"Product",sub:"",cost:2970400},
+  {id:"RT0432",name:"Inaganti Varun",doj:"1-Jul-22",desig:"Senior Software Engineer - Technology",mgr:"Rajesh Devavarapu",mgrid:"RT0754",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:1668600},
+  {id:"FFIRT00282",name:"Afsha Khan",doj:"8-Jul-24",desig:"AI ML Technical Analyst",mgr:"Sanket Waghmare",mgrid:"RT0260",status:"Resigned",cc:"Technology",dept:"Engineering",sub:"",cost:110496},
+  {id:"RT0433",name:"Naredla Lakshmi Hemalatha",doj:"1-Jul-22",desig:"Senior Software Engineer - Technology",mgr:"Nimmalapudi Santhosh Kumar",mgrid:"RT0509",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:1668600},
+  {id:"RT0435",name:"Penchala Nikitha",doj:"1-Jul-22",desig:"Senior Software Engineer - Technology",mgr:"Nimmalapudi Santhosh Kumar",mgrid:"RT0509",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:1668600},
+  {id:"RT0437",name:"Kethipelli Hithesh Reddy",doj:"1-Jul-22",desig:"Senior Software Engineer - Technology",mgr:"Rajesh Devavarapu",mgrid:"RT0754",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:1683100},
+  {id:"RT0460",name:"Bommineani Venkata Naga Balaji",doj:"16-Aug-22",desig:"Senior Test Engineer",mgr:"Ramesh Babu Lingam",mgrid:"RT0006",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:1321600},
+  {id:"RT0472",name:"Ragula Prashanth",doj:"24-Aug-22",desig:"Dev Ops Engineer",mgr:"Rajesh Devavarapu",mgrid:"RT0754",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:1407400},
+  {id:"RT0476",name:"Sriram Pranay Kumar",doj:"5-Sep-22",desig:"QA Engineer",mgr:"Rajesh Devavarapu",mgrid:"RT0754",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:841200},
+  {id:"RT0478",name:"Chunduri Purna Chandrarao",doj:"06-Sep-22",desig:"Associate Architect",mgr:"Harish Kalepu",mgrid:"RT0320",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:2389000},
+  {id:"RT0509",name:"Nimmalapudi Santhosh Kumar",doj:"2-Jan-23",desig:"Lead Engineer",mgr:"Pasupuleti Sukesh Krishna",mgrid:"RT0267",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:2782100},
+  {id:"RT0524",name:"Namuru Gagan Teja",doj:"14-Feb-23",desig:"QA Engineer - Technology",mgr:"Nimmalapudi Santhosh Kumar",mgrid:"RT0509",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:600000},
+  {id:"RT0770",name:"Emandi Chandra Mouli",doj:"11-Dec-24",desig:"Junior Software Engineer",mgr:"Sandeep Dillerao",mgrid:"RT0020",status:"Resigned",cc:"Technology",dept:"Engineering",sub:"",cost:128219},
+  {id:"RT0554",name:"Narayana Karthik",doj:"5-Jun-23",desig:"Senior Software Engineer",mgr:"Munaga Sravanthi",mgrid:"RT0170",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:1320000},
+  {id:"RT0571",name:"Malku Sandeep",doj:"23-Jun-23",desig:"Lead Engineer - Technology",mgr:"Ramesh Babu Lingam",mgrid:"RT0006",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:2366600},
+  {id:"RT0579",name:"Aditya Thotada",doj:"17-July-23",desig:"QA Engineer",mgr:"Sandeep Dillerao",mgrid:"RT0020",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:1516300},
+  {id:"RT0580",name:"Athyala Praveen Kumar",doj:"17-July-23",desig:"Software Engineer",mgr:"Ramesh Babu Lingam",mgrid:"RT0006",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:1604900},
+  {id:"RT0581",name:"Kolla Sayi Varshine Devi",doj:"24-Jul-23",desig:"Senior Product Manager",mgr:"Srinath Duggirala",mgrid:"RT0916",status:"Active",cc:"Technology",dept:"Product",sub:"",cost:3660300},
+  {id:"RT0596",name:"Bavandla Jayaram Netha",doj:"23-Aug-23",desig:"Software Engineer",mgr:"Narayana Karthik",mgrid:"RT0554",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:752800},
+  {id:"RT0591",name:"Pottabathula Uday",doj:"23-Aug-23",desig:"Software Engineer - Technology",mgr:"Rajesh Devavarapu",mgrid:"RT0754",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:802100},
+  {id:"RT0594",name:"Gali Raja Praveen Reddy",doj:"23-Aug-23",desig:"Software Engineer - Technology",mgr:"Malku Sandeep",mgrid:"RT0571",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:802100},
+  {id:"RT0595",name:"Sabbi Ravi",doj:"23-Aug-23",desig:"Software Engineer - Technology",mgr:"Malku Sandeep",mgrid:"RT0571",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:802100},
+  {id:"RT0592",name:"Kotha Pavan Siva Srinivasa Naidu",doj:"23-Aug-23",desig:"Software Engineer",mgr:"Sandeep Dillerao",mgrid:"RT0020",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:824700},
+  {id:"RT0593",name:"Kodi Mohan Kumar",doj:"23-Aug-23",desig:"Software Engineer",mgr:"Ramesh Babu Lingam",mgrid:"RT0006",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:824700},
+  {id:"RT0600",name:"Arram Krishna Kumar",doj:"04-Sep-23",desig:"Senior Manager - Technology",mgr:"Srinath Duggirala",mgrid:"RT0916",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:2407600},
+  {id:"RT0603",name:"Dontha Prashanthi",doj:"11-Sep-23",desig:"Software Engineer",mgr:"Munaga Sravanthi",mgrid:"RT0170",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:1230600},
+  {id:"RT0895",name:"Kandulapati L S S N Valli Devi",doj:"18-Aug-25",desig:"Junior Software Engineer",mgr:"Rajesh Devavarapu",mgrid:"RT0754",status:"Resigned",cc:"Technology",dept:"Engineering",sub:"",cost:142466},
+  {id:"RT0614",name:"Peddannagari Vamshidhar Reddy",doj:"9-Oct-23",desig:"Senior Software Engineer - Technology",mgr:"Nimmalapudi Santhosh Kumar",mgrid:"RT0509",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:1491600},
+  {id:"RT0627",name:"Arun Kumar Maharana",doj:"15-Nov-23",desig:"Senior IT Admin",mgr:"Hari Kiran Kandrakota",mgrid:"RT0345",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:892200},
+  {id:"RT0630",name:"Maredubaku Santhosh Kumar",doj:"04-Dec-23",desig:"QA Engineer",mgr:"Munaga Sravanthi",mgrid:"RT0170",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:1008900},
+  {id:"RT0634",name:"Naveena L",doj:"11-Dec-23",desig:"QA Engineer",mgr:"Rajesh Devavarapu",mgrid:"RT0754",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:896800},
+  {id:"RT0639",name:"Bandi Nagaraju",doj:"2-Jan-24",desig:"Lead Engineer - Technology",mgr:"Harish Kalepu",mgrid:"RT0320",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:2750000},
+  {id:"RT0643",name:"Mangamoori Varshita",doj:"8-Jan-24",desig:"Associate Director - Product Strategy",mgr:"Vikram Loka Prabakar",mgrid:"RT0222",status:"Active",cc:"Technology",dept:"Product",sub:"",cost:4100000},
+  {id:"RT0651",name:"Suresh Behera",doj:"07-Feb-24",desig:"Software Engineer - Technology",mgr:"Rajesh Devavarapu",mgrid:"RT0754",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:576300},
+  {id:"RT0664",name:"Dhonekeni Preetham",doj:"21-Mar-24",desig:"Associate Product Manager - Technology",mgr:"Yampati Venkata Shiva Reddy",mgrid:"RT0357",status:"Active",cc:"Technology",dept:"Product",sub:"",cost:1400000},
+  {id:"RT0670",name:"Arpita Dhar",doj:"22-Apr-24",desig:"Software Engineer",mgr:"Munaga Sravanthi",mgrid:"RT0170",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:952400},
+  {id:"RT0686",name:"Kambhampati V V Satya Krishna Bharath",doj:"03-Jun-24",desig:"Junior Software Engineer",mgr:"Nimmalapudi Santhosh Kumar",mgrid:"RT0509",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:1539400},
+  {id:"RT0687",name:"Aryan Singhal",doj:"03-Jun-24",desig:"Junior Software Engineer",mgr:"Rajesh Devavarapu",mgrid:"RT0754",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:1539400},
+  {id:"RT0688",name:"Jeet Samirkumar Shah",doj:"3-Jun-24",desig:"Junior Software Engineer",mgr:"Rajesh Devavarapu",mgrid:"RT0754",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:1539400},
+  {id:"RT0692",name:"Tipirisetty Sreeya",doj:"10-Jun-24",desig:"Junior Software Engineer",mgr:"Nimmalapudi Santhosh Kumar",mgrid:"RT0509",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:1539400},
+  {id:"RT0694",name:"Chirumamilla Vamsi",doj:"10-June-24",desig:"Junior Software Engineer",mgr:"Rajesh Devavarapu",mgrid:"RT0754",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:1539400},
+  {id:"RT0702",name:"Anand M V",doj:"1-July-24",desig:"Associate Product Manager - Technology",mgr:"Yampati Venkata Shiva Reddy",mgrid:"RT0357",status:"Active",cc:"Technology",dept:"Product",sub:"",cost:979600},
+  {id:"RT0706",name:"Alahari Hemanth",doj:"08-Jul-24",desig:"Senior QA Engineer",mgr:"Bandi Nagaraju",mgrid:"RT0639",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:1760900},
+  {id:"RT0705",name:"Anthony Joseph",doj:"08-Jul-24",desig:"Associate Program Manager",mgr:"Pasupuleti Sukesh Krishna",mgrid:"RT0267",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:2042600},
+  {id:"RT0713",name:"Angelina Gupta",doj:"25-Jul-24",desig:"Assistant Manager",mgr:"Mangamoori Varshita",mgrid:"RT0643",status:"Active",cc:"Technology",dept:"Product",sub:"",cost:1227000},
+  {id:"RT0730",name:"Basupally Rohith",doj:"03-Sep-24",desig:"Product Manager",mgr:"Yampati Venkata Shiva Reddy",mgrid:"RT0357",status:"Active",cc:"Technology",dept:"Product",sub:"",cost:2674000},
+  {id:"RT0732",name:"Damurothu Likhil Kumar",doj:"04-Sep-24",desig:"Junior Software Engineer",mgr:"Nimmalapudi Santhosh Kumar",mgrid:"RT0509",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:575400},
+  {id:"RT0754",name:"Rajesh Devavarapu",doj:"04-Nov-24",desig:"Engineering Manager",mgr:"Hari Kiran Kandrakota",mgrid:"RT0345",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:3900000},
+  {id:"RT0981",name:"Rohan Paillipaga",doj:"16-Feb-26",desig:"Business Analyst",mgr:"Mangamoori Varshita",mgrid:"RT0643",status:"Resigned",cc:"Technology",dept:"Product",sub:"",cost:160000},
+  {id:"RT0771",name:"Kalagiri Rakesh",doj:"11-Dec-24",desig:"Junior Software Engineer",mgr:"Yekollu Siddartha Reddy",mgrid:"RT0768",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:450000},
+  {id:"RT0768",name:"Yekollu Siddartha Reddy",doj:"16-Dec-24",desig:"Software Engineer",mgr:"Rajesh Devavarapu",mgrid:"RT0754",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:1300000},
+  {id:"RT0782",name:"Rameswarapu Monika Ravali Sri",doj:"20-Jan-25",desig:"Junior Software Engineer",mgr:"Ramesh Babu Lingam",mgrid:"RT0006",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:450000},
+  {id:"RT0784",name:"Lenka Saichaitanya",doj:"23-Jan-25",desig:"System Administrator",mgr:"Hari Kiran Kandrakota",mgrid:"RT0345",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:1200000},
+  {id:"RT0731",name:"P Harshini",doj:"10-Sep-24",desig:"Junior Software Engineer",mgr:"Rajesh Devavarapu",mgrid:"RT0754",status:"Resigned",cc:"Technology",dept:"Engineering",sub:"",cost:251765},
+  {id:"RT0792",name:"Priya Mallikharjuna Naidu",doj:"10-Feb-25",desig:"Junior Devops Engineer",mgr:"Ragula Prashanth",mgrid:"RT0472",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:450000},
+  {id:"RT0793",name:"Sonia Shubhanand Hatkar",doj:"10-Feb-25",desig:"Junior Software Engineer",mgr:"Malku Sandeep",mgrid:"RT0571",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:450000},
+  {id:"RT0946",name:"Unniraj",doj:"17-Nov-25",desig:"Business Analyst",mgr:"Mangamoori Varshita",mgrid:"RT0643",status:"Resigned",cc:"Technology",dept:"Product",sub:"",cost:256438},
+  {id:"RT0794",name:"Adilla Sindhu",doj:"10-February-25",desig:"Junior Software Engineer",mgr:"Yekollu Siddartha Reddy",mgrid:"RT0768",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:450000},
+  {id:"RT0954",name:"Dasari Ashwith Kumar",doj:"8-December-25",desig:"UI/UX Designer",mgr:"Amruta Patil",mgrid:"RT0366",status:"Resigned",cc:"Technology",dept:"Product",sub:"",cost:284932},
+  {id:"RT0803",name:"Pilla Devi Apurup Kumar",doj:"3-Mar-2025",desig:"Junior Software Engineer",mgr:"Malku Sandeep",mgrid:"RT0571",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:600000},
+  {id:"RT0523",name:"Mamidi Keerthana",doj:"13-Feb-2023",desig:"Software Engineer",mgr:"Rajesh Devavarapu",mgrid:"RT0754",status:"Resigned",cc:"Technology",dept:"Engineering",sub:"",cost:287154},
+  {id:"RT0808",name:"Bondili Dheeraj Singh",doj:"10-Mar-25",desig:"QA Engineer",mgr:"Nimmalapudi Santhosh Kumar",mgrid:"RT0509",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:1300000},
+  {id:"RT0817",name:"Gundu Keerthi",doj:"24-Mar-25",desig:"Senior Software Engineer",mgr:"Munaga Sravanthi",mgrid:"RT0170",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:1500000},
+  {id:"RT0813",name:"Shruti Kiran Totla",doj:"24-Mar-25",desig:"Associate Product Manager",mgr:"Kolla Sayi Varshine Devi",mgrid:"RT0581",status:"Active",cc:"Technology",dept:"Product",sub:"",cost:2100000},
+  {id:"RT0827",name:"Aayush Chandna",doj:"05-May-25",desig:"UI/UX Designer",mgr:"Amruta Patil",mgrid:"RT0366",status:"Active",cc:"Technology",dept:"Product",sub:"",cost:1000000},
+  {id:"RT0806",name:"Shaik Sarfaraz",doj:"03-Mar-25",desig:"Software Engineer",mgr:"Bandi Nagaraju",mgrid:"RT0639",status:"Resigned",cc:"Technology",dept:"Engineering",sub:"",cost:341918},
+  {id:"RT0833",name:"Mummadi Nanda Kishore Reddy",doj:"19-May-25",desig:"Junior Software Engineer",mgr:"Rajesh Devavarapu",mgrid:"RT0754",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:1100000},
+  {id:"RT0832",name:"Harsh Khandelwal",doj:"19-May-25",desig:"Junior Software Engineer",mgr:"Bandi Nagaraju",mgrid:"RT0639",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:1200000},
+  {id:"RT0843",name:"Guduri Sreeja",doj:"16-Jun-25",desig:"Junior Software Engineer",mgr:"Ramesh Babu Lingam",mgrid:"RT0006",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:1400000},
+  {id:"RT0612",name:"Aayansh Mehra",doj:"04-Oct-23",desig:"UI/UX Designer",mgr:"Amruta Patil",mgrid:"RT0366",status:"Resigned",cc:"Technology",dept:"Product",sub:"",cost:365453},
+  {id:"RT0846",name:"Koushik Maji",doj:"23-Jun-25",desig:"Junior AI Engineer",mgr:"Sanket Waghmare",mgrid:"RT0260",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:1200000},
+  {id:"RT0851",name:"Pramod Hembrom",doj:"01-Jul-25",desig:"Junior Software Engineer",mgr:"Munaga Sravanthi",mgrid:"RT0170",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:1100000},
+  {id:"RT0856",name:"Atharva Patil",doj:"07-Jul-25",desig:"Junior AI Engineer",mgr:"Sanket Waghmare",mgrid:"RT0260",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:1200000},
+  {id:"RT0842",name:"Shantanu Shivkumar Pathak",doj:"16-Jun-25",desig:"Junior Software Engineer",mgr:"Bandi Nagaraju",mgrid:"RT0639",status:"Resigned",cc:"Technology",dept:"Engineering",sub:"",cost:398904},
+  {id:"RT0893",name:"Pola Lohith",doj:"18-Aug-25",desig:"Junior Software Engineer",mgr:"Yekollu Siddartha Reddy",mgrid:"RT0768",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:500000},
+  {id:"RT0894",name:"Amarthaluru Sai Thanusha",doj:"18-Aug-25",desig:"Junior Software Engineer",mgr:"Yekollu Siddartha Reddy",mgrid:"RT0768",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:500000},
+  {id:"RT0896",name:"Nookala Lakshmi Sruthi",doj:"18-Aug-25",desig:"Junior Software Engineer",mgr:"Arpita Dhar",mgrid:"RT0670",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:500000},
+  {id:"RT0897",name:"Purandhar Tatarao Adigarla",doj:"18-Aug-25",desig:"Junior Software Engineer",mgr:"Arpita Dhar",mgrid:"RT0670",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:500000},
+  {id:"RT0898",name:"Naredla Hari Gopal Reddy",doj:"18-Aug-25",desig:"Junior QA Engineer",mgr:"Rajesh Devavarapu",mgrid:"RT0754",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:500000},
+  {id:"RT0900",name:"Ruma Ara",doj:"18-Aug-25",desig:"Senior QA Engineer",mgr:"Ramesh Babu Lingam",mgrid:"RT0006",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:1200000},
+  {id:"RT0938",name:"Tumma Charan",doj:"03-Nov-25",desig:"System Administrator",mgr:"Arun Kumar Maharana",mgrid:"RT0627",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:650000},
+  {id:"RT0810",name:"Himanshu Vidhyanand Chahande",doj:"17-Mar-25",desig:"Associate Product Manager",mgr:"Manoj Kumar S",mgrid:"RT0234",status:"Resigned",cc:"Technology",dept:"Product",sub:"",cost:644932},
+  {id:"RT0955",name:"Kunduru Rahul Reddy",doj:"08-Dec-25",desig:"Senior Director",mgr:"Vikram Loka Prabakar",mgrid:"RT0222",status:"Active",cc:"Technology",dept:"Product",sub:"",cost:6400000},
+  {id:"RT0956",name:"Suram Harideep Reddy",doj:"15-Dec-25",desig:"Software Engineer",mgr:"Sandeep Dillerao",mgrid:"RT0020",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:1700000},
+  {id:"RT0672",name:"Aditi Singh",doj:"02-May-24",desig:"Product Manager - Technology",mgr:"Kolla Sayi Varshine Devi",mgrid:"RT0581",status:"Resigned",cc:"Technology",dept:"Product",sub:"",cost:720132},
+  {id:"RT0815",name:"R M Revanth Kumar",doj:"24-Mar-25",desig:"Product Manager",mgr:"Kolla Sayi Varshine Devi",mgrid:"RT0581",status:"Resigned",cc:"Technology",dept:"Product",sub:"",cost:795616},
+  {id:"RT0964",name:"Beauty Kumari",doj:"05-Jan-26",desig:"Software Engineer",mgr:"Hari Kiran Kandrakota",mgrid:"RT0345",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:1700000},
+  {id:"RT0984",name:"Raghavendra Rao Amanchi",doj:"23-Feb-26",desig:"IT Infrastructure Manager",mgr:"Hari Kiran Kandrakota",mgrid:"RT0345",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:1400000},
+  {id:"RT0036",name:"Sneha Budhia",doj:"01-Feb-17",desig:"Director - Product",mgr:"Vikram Loka Prabakar",mgrid:"RT0222",status:"Resigned",cc:"Technology",dept:"Product",sub:"",cost:916370},
+  {id:"RT0320",name:"Harish Kalepu",doj:"08-Dec-21",desig:"Enterprise Architect",mgr:"Hari Kiran Kandrakota",mgrid:"RT0345",status:"Resigned",cc:"Technology",dept:"Engineering",sub:"",cost:1266326},
+  {id:"RT0916",name:"Srinath Duggirala",doj:"22-Sep-25",desig:"Vice President",mgr:"Vikram Loka Prabakar",mgrid:"RT0222",status:"Resigned",cc:"Technology",dept:"Product",sub:"",cost:2564384},
+  {id:"RT1005",name:"Maloth Poojarani",doj:"3-Jun-2026",desig:"Associate Product Manager - Technology",mgr:"Kolla Sayi Varshine Devi",mgrid:"RT0581",status:"Active",cc:"Technology",dept:"Product",sub:"",cost:1158356},
+  {id:"RT1009",name:"Pranav Bhalchandra Joshi",doj:"3-Jun-2026",desig:"Junior Software Engineer",mgr:"Rajesh Devavarapu",mgrid:"RT0754",status:"Active",cc:"Technology",dept:"Engineering",sub:"",cost:33096}
+,
+  // ── RETEARN ──
+  {id:"RT0572",name:"Uttej Shyam Patange",doj:"3-Jul-23",desig:"AI Engineer - Technology",mgr:"Sanket Waghmare",mgrid:"VIRT_SANKET",status:"Active",cc:"Retearn",dept:"Engineering",sub:"AI",cost:852000},
+  {id:"RT0611",name:"Josna Theresa Gigo",doj:"03-Oct-23",desig:"Senior AI Engineer - Technology",mgr:"Sanket Waghmare",mgrid:"VIRT_SANKET",status:"Active",cc:"Retearn",dept:"Engineering",sub:"AI",cost:1001310},
+  {id:"RT0661",name:"Anurag Rajesh Mishra",doj:"11-Mar-24",desig:"AI ML Technical Analyst",mgr:"Sanket Waghmare",mgrid:"VIRT_SANKET",status:"Active",cc:"Retearn",dept:"Engineering",sub:"AI",cost:569700},
+  {id:"RE0002",name:"Sasi Bhushan Pedapudi",doj:"05-Jul-24",desig:"Business Analyst",mgr:"Vivek",mgrid:"RE0003",status:"Active",cc:"Retearn",dept:"Product & Strategy",sub:"Analytics & Insights",cost:728378},
+  {id:"RE0001",name:"Anjali Tripathi",doj:"05-Jul-24",desig:"Senior QA Engineer",mgr:"Vivek",mgrid:"RE0003",status:"Active",cc:"Retearn",dept:"Engineering",sub:"QA",cost:1254000},
+  {id:"RE0006",name:"Kesavarapu Akhil Teja",doj:"05-Jul-24",desig:"Mechanical Design Engineer",mgr:"Peermohamed Thowbik",mgrid:"RE0019",status:"Active",cc:"Retearn",dept:"Engineering",sub:"Mechanical Engineering",cost:1491600},
+  {id:"RE0005",name:"Mohammed Shahid Hussain",doj:"05-Jul-24",desig:"Platform Engineering Manager",mgr:"Tirumala Vangipuram Sujan Parthasaradhi",mgrid:"RE0007",status:"Active",cc:"Retearn",dept:"Engineering",sub:"Embedded Engineering",cost:2844258},
+  {id:"RE0003",name:"Vivek",doj:"05-Jul-24",desig:"Group Product Manager",mgr:"Tirumala Vangipuram Sujan Parthasaradhi",mgrid:"RE0007",status:"Active",cc:"Retearn",dept:"Product & Strategy",sub:"Product & Strategy",cost:3793338},
+  {id:"RE0008",name:"Modi Sreenath",doj:"5-Aug-24",desig:"Production Engineer",mgr:"Vivek",mgrid:"RE0003",status:"Active",cc:"Retearn",dept:"Operations",sub:"Production",cost:353100},
+  {id:"RE0009",name:"Jatin Mahesh Gohil",doj:"23-Sep-24",desig:"Product Manager",mgr:"Tirumala Vangipuram Sujan Parthasaradhi",mgrid:"RE0007",status:"Active",cc:"Retearn",dept:"Product & Strategy",sub:"Product & Strategy",cost:2331980},
+  {id:"RE0010",name:"Boddu Trinadh",doj:"14-Oct-24",desig:"Production Engineer",mgr:"Vivek",mgrid:"RE0003",status:"Active",cc:"Retearn",dept:"Operations",sub:"Production",cost:350000},
+  {id:"RE0011",name:"Chirutha Yakoob Prathap",doj:"21-Oct-24",desig:"Senior Executive - Procurement",mgr:"Vivek",mgrid:"RE0003",status:"Active",cc:"Retearn",dept:"Operations",sub:"Procurement",cost:680000},
+  {id:"RE0013",name:"Prince Pandey",doj:"25-Nov-24",desig:"Embedded Engineer",mgr:"Mohammed Shahid Hussain",mgrid:"RE0005",status:"Active",cc:"Retearn",dept:"Engineering",sub:"Embedded Engineering",cost:1200000},
+  {id:"RE0014",name:"Ajij Md Rafiq Jamadar",doj:"02-Jan-25",desig:"Data Analyst",mgr:"Vivek",mgrid:"RE0003",status:"Active",cc:"Retearn",dept:"Product & Strategy",sub:"Analytics & Insights",cost:1300000},
+  {id:"RE0016",name:"Harshvardhan Sahu",doj:"03-Feb-25",desig:"Image Processing Engineer",mgr:"Vivek",mgrid:"RE0003",status:"Active",cc:"Retearn",dept:"Engineering",sub:"AI",cost:1250000},
+  {id:"RE0015",name:"Pasham Nithish Reddy",doj:"3-Feb-25",desig:"Senior Research Scientist",mgr:"Tirumala Vangipuram Sujan Parthasaradhi",mgrid:"RE0007",status:"Active",cc:"Retearn",dept:"Research (R&D)",sub:"New Tech",cost:2200000},
+  {id:"RE0018",name:"Ankita Purushottam Naik",doj:"14-Apr-25",desig:"Junior AI Engineer",mgr:"Vivek",mgrid:"RE0003",status:"Active",cc:"Retearn",dept:"Engineering",sub:"AI",cost:550000},
+  {id:"RT0829",name:"Kandukuri Sai Swaroop Reddy",doj:"05-May-25",desig:"AI ML Technical Analyst",mgr:"Sanket Waghmare",mgrid:"VIRT_SANKET",status:"Active",cc:"Retearn",dept:"Engineering",sub:"AI",cost:500000},
+  {id:"RE0019",name:"Peermohamed Thowbik",doj:"19-May-25",desig:"Lead Mechanical Engineer",mgr:"Vivek",mgrid:"RE0003",status:"Active",cc:"Retearn",dept:"Engineering",sub:"Mechanical Engineering",cost:2800000},
+  {id:"RE0020",name:"Talari Sripavan",doj:"09-Jun-25",desig:"Senior Executive",mgr:"Vivek",mgrid:"RE0003",status:"Resigned",cc:"Retearn",dept:"Product & Strategy",sub:"Creative  - UI/UX",cost:239726},
+  {id:"RE0022",name:"Parth Mishra",doj:"14-Jul-25",desig:"Product Analyst",mgr:"Vivek",mgrid:"RE0003",status:"Active",cc:"Retearn",dept:"Product & Strategy",sub:"Analytics & Insights",cost:700000},
+  {id:"RE0023",name:"Ayalasomayajula Anirudh",doj:"24-Jul-25",desig:"Software Engineer",mgr:"Vivek",mgrid:"RE0003",status:"Active",cc:"Retearn",dept:"Engineering",sub:"Software",cost:1450000},
+  {id:"RE0025",name:"Veeramalla Vineeth",doj:"11-Aug-25",desig:"Embedded Engineer",mgr:"Mohammed Shahid Hussain",mgrid:"RE0005",status:"Active",cc:"Retearn",dept:"Engineering",sub:"Embedded Engineering",cost:2000000},
+  {id:"RE0026",name:"Mahankali Kiran",doj:"02-Sep-25",desig:"Senior Executive",mgr:"Raveendra Babu Gaddam",mgrid:"RT0488",status:"Active",cc:"Retearn",dept:"Finance",sub:"",cost:780000},
+  {id:"RE0027",name:"Neeli Malleswara Rao",doj:"25-Sep-25",desig:"Assistant Manager",mgr:"Vivek",mgrid:"RE0003",status:"Active",cc:"Retearn",dept:"Support",sub:"Technical Support",cost:800000},
+  {id:"RE0029",name:"Prem Nitin Agale",doj:"01-Dec-25",desig:"Executive BD",mgr:"Chirutha Yakoob Prathap",mgrid:"RE0011",status:"Active",cc:"Retearn",dept:"Product & Strategy",sub:"Analytics & Insights",cost:450000},
+  {id:"RE0028",name:"Hashim Mohd Khan",doj:"01-Dec-25",desig:"Senior Mechanical Design Engineer",mgr:"Peermohamed Thowbik",mgrid:"RE0019",status:"Active",cc:"Retearn",dept:"Engineering",sub:"Mechanical Engineering",cost:1450000},
+  {id:"RE0030",name:"G Sai Charan",doj:"15-Dec-25",desig:"Embedded Engineer",mgr:"Mohammed Shahid Hussain",mgrid:"RE0005",status:"Active",cc:"Retearn",dept:"Engineering",sub:"Embedded Engineering",cost:1400000},
+  {id:"RE0031",name:"G Toshit",doj:"02-Feb-26",desig:"Junior Embedded Engineer",mgr:"Mohammed Shahid Hussain",mgrid:"RE0005",status:"Active",cc:"Retearn",dept:"Engineering",sub:"Embedded Engineering",cost:450000},
+  {id:"RE0032",name:"Barpati Praveen",doj:"09-Feb-26",desig:"Junior Mechanical Design Engineer",mgr:"Kesavarapu Akhil Teja",mgrid:"RE0006",status:"Active",cc:"Retearn",dept:"Engineering",sub:"Mechanical Engineering",cost:400000},
+  {id:"RE0034",name:"Kethavath Ravi",doj:"01-Apr-26",desig:"Production Technician",mgr:"Vivek",mgrid:"RE0003",status:"Active",cc:"Retearn",dept:"Operations",sub:"Production",cost:450000},
+  {id:"RE0033",name:"Pranav Uppuluri",doj:"01-Apr-26",desig:"Junior AI Engineer",mgr:"Harshvardhan Sahu",mgrid:"RE0016",status:"Active",cc:"Retearn",dept:"Engineering",sub:"AI",cost:800000},
+  {id:"RE0035",name:"Battu Bhaskara Raju",doj:"06-Apr-26",desig:"Production Technician",mgr:"Vivek",mgrid:"RE0003",status:"Active",cc:"Retearn",dept:"Operations",sub:"Filed Support",cost:493151},
+  {id:"RE0036",name:"Rohan Shetty",doj:"20-Apr-26",desig:"Senior Executive - Field Technician",mgr:"Vivek",mgrid:"RE0003",status:"Active",cc:"Retearn",dept:"Operations",sub:"Filed Support",cost:616164},
+  {id:"RE0037",name:"Aman Prajapati",doj:"23-Apr-26",desig:"Executive - Field Technician",mgr:"Vivek",mgrid:"RE0003",status:"Active",cc:"Retearn",dept:"Operations",sub:"Filed Support",cost:422877},
+  {id:"RE0038",name:"Ritesh Kumar",doj:"04-May-26",desig:"Executive - Field Technician",mgr:"Vivek",mgrid:"RE0003",status:"Active",cc:"Retearn",dept:"Operations",sub:"Filed Support",cost:454795},
+  {id:"RE0039",name:"Ravikant Shivlakhan Singh",doj:"11-May-26",desig:"Senior Executive-Technical Support Engineer",mgr:"Vivek",mgrid:"RE0003",status:"Active",cc:"Retearn",dept:"Support",sub:"Technical Support",cost:534247},
+  {id:"RE0040",name:"Krushnath Shrikant Naik",doj:"25-May-26",desig:"Senior Executive - Field Technician",mgr:"Vivek",mgrid:"RE0003",status:"Active",cc:"Retearn",dept:"Operations",sub:"",cost:426027},
+  {id:"RE0041",name:"G M S Chakradhar Rao",doj:"25-May-26",desig:"Executive - Field Technician",mgr:"Sasi Bhushan Pedapudi",mgrid:"RT0264",status:"Active",cc:"Retearn",dept:"Operations",sub:"Site Implementation",cost:511233},
+  {id:"RE0042",name:"Syamala Sravya",doj:"1-Jun-2026",desig:"Junior QA Engineer",mgr:"Anjali Tripathi",mgrid:"RE0001",status:"Active",cc:"Retearn",dept:"Engineering",sub:"QA",cost:333151},
+  {id:"RE0043",name:"Chatripally Sai Pavan",doj:"1-Jun-2026",desig:"Junior QA Engineer",mgr:"Anjali Tripathi",mgrid:"RE0001",status:"Active",cc:"Retearn",dept:"Engineering",sub:"QA",cost:333151},
+  {id:"RE0044",name:"Neela Manikandan Sekaran",doj:"8-Jun-2026",desig:"Assistant Manager",mgr:"Vivek",mgrid:"RE0003",status:"Active",cc:"Retearn",dept:"Operations",sub:"",cost:813699},
+,
+  // ── INFRA BUSINESS ──
+  {id:"RT0191",name:"Mamidi Vijaya Lakshmi",doj:"04-Oct-20",desig:"Senior Executive",mgr:"Kuruguntla Koteswara Rao",mgrid:"RT0429",status:"Active",cc:"Infra",dept:"Finance",sub:"",cost:590100},
+  {id:"FFIRT00204",name:"Sandeep Singh",doj:"28-Aug-23",desig:"Senior Executive - Metal",mgr:"Prakhar Maroo",mgrid:"RT0765",status:"Resigned",cc:"Infra",dept:"Operations",sub:"",cost:96534},
+  {id:"RT0959",name:"Sagar Chandra Samal",doj:"22-Dec-25",desig:"Manager",mgr:"Md Shadab Hussain",mgrid:"RT0885",status:"Resigned",cc:"Infra",dept:"Operations",sub:"",cost:393288},
+  {id:"FFIRT00246",name:"Gourab Sharma",doj:"22-Feb-24",desig:"Senior Executive - Metal",mgr:"Prakhar Maroo",mgrid:"RT0765",status:"Resigned",cc:"Infra",dept:"Operations",sub:"",cost:115882},
+  {id:"RT0615",name:"Rounak Jindal",doj:"18-Oct-23",desig:"Associate Director - Metal",mgr:"Abhishek Arvind Deshpande",mgrid:"RT0005",status:"Active",cc:"Infra",dept:"Head",sub:"",cost:4204200},
+  {id:"RT0682",name:"Sunil Sharma",doj:"20-May-24",desig:"Assistant General Manager - Metal",mgr:"Rounak Jindal",mgrid:"RT0615",status:"Active",cc:"Infra",dept:"Auction Business",sub:"",cost:2492100},
+  {id:"RT0691",name:"Priteshkumar Kishorbhai Makwana",doj:"03-Jun-24",desig:"Senior Manager",mgr:"Rounak Jindal",mgrid:"RT0615",status:"Active",cc:"Infra",dept:"Enterprise Business",sub:"",cost:2066400},
+  {id:"RT0765",name:"Prakhar Maroo",doj:"9-Dec-24",desig:"Assistant Manager",mgr:"Rounak Jindal",mgrid:"RT0615",status:"Active",cc:"Infra",dept:"Operations",sub:"",cost:800000},
+  {id:"RT0769",name:"Amit Vinod Butolia",doj:"23-Dec-24",desig:"Assistant Manager",mgr:"Rounak Jindal",mgrid:"RT0615",status:"Active",cc:"Infra",dept:"URD Business",sub:"",cost:880000},
+  {id:"RT0785",name:"Gundapuneni Sandeep Kumar",doj:"23-Jan-25",desig:"Manager - Business Finance",mgr:"Namita Rameshwar Prasad Sharma",mgrid:"RT0907",status:"Active",cc:"Infra",dept:"Finance",sub:"",cost:1800000},
+  {id:"FFIRT00354",name:"Ashitosh Balasaheb Kamble",doj:"07-Apr-25",desig:"Senior Executive",mgr:"Annada Shukla",mgrid:"RT0825",status:"Active",cc:"Infra",dept:"URD Business",sub:"",cost:730000},
+  {id:"RT0823",name:"Swapnil Pandurang Lohar",doj:"07-Apr-25",desig:"Assistant Manager",mgr:"Annada Shukla",mgrid:"RT0825",status:"Active",cc:"Infra",dept:"URD Business",sub:"",cost:1100000},
+  {id:"RT0840",name:"Mayank Dixit",doj:"09-Jun-25",desig:"Manager",mgr:"Rounak Jindal",mgrid:"RT0615",status:"Active",cc:"Infra",dept:"Imports",sub:"",cost:1340000},
+  {id:"RT0841",name:"Kunal Deepak Miglani",doj:"09-Jun-25",desig:"Senior Manager",mgr:"Rounak Jindal",mgrid:"RT0615",status:"Active",cc:"Infra",dept:"Enterprise Business",sub:"",cost:2400000},
+  {id:"RT0865",name:"Ishan Dhingra",doj:"14-Jul-25",desig:"Manager",mgr:"Sunil Sharma",mgrid:"RT0682",status:"Active",cc:"Infra",dept:"Auction Business",sub:"",cost:1550000},
+  {id:"RT0885",name:"Md Shadab Hussain",doj:"04-Aug-25",desig:"Manager",mgr:"Sunil Sharma",mgrid:"RT0682",status:"Resigned",cc:"Infra",dept:"Auction Business",sub:"",cost:432877},
+  {id:"RT0903",name:"Aniket Tyagi",doj:"25-Aug-25",desig:"Manager",mgr:"Sunil Sharma",mgrid:"RT0682",status:"Active",cc:"Infra",dept:"Enterprise Business",sub:"",cost:1935000},
+  {id:"RT0906",name:"Thilakraj Mendon",doj:"01-Sep-25",desig:"Senior Manager",mgr:"Sunil Sharma",mgrid:"RT0682",status:"Active",cc:"Infra",dept:"URD Business",sub:"",cost:1700000},
+  {id:"RT0926",name:"Gamidi Jadidiah Kingson",doj:"01-Oct-25",desig:"Assistant Manager - Metal",mgr:"Sunil Sharma",mgrid:"RT0682",status:"Active",cc:"Infra",dept:"Enterprise Business",sub:"",cost:589680},
+  {id:"RT0933",name:"Supravat Maity",doj:"01-Oct-25",desig:"Assistant Manager - Metal",mgr:"Sunil Sharma",mgrid:"RT0682",status:"Active",cc:"Infra",dept:"Auction Business",sub:"",cost:666360},
+  {id:"RT0940",name:"Mayank Sanwal",doj:"03-Nov-25",desig:"Assistant General Manager",mgr:"Rounak Jindal",mgrid:"RT0615",status:"Active",cc:"Infra",dept:"URD Business",sub:"",cost:3400000},
+  {id:"RT0951",name:"Prakash",doj:"01-Dec-25",desig:"Manager",mgr:"Sunil Sharma",mgrid:"RT0682",status:"Active",cc:"Infra",dept:"Auction Business",sub:"",cost:1450000},
+  {id:"RT0965",name:"Gourav Kumar Chaturbedi",doj:"05-Jan-26",desig:"Assistant Manager",mgr:"Prakhar Maroo",mgrid:"RT0765",status:"Active",cc:"Infra",dept:"Operations",sub:"",cost:900000},
+  {id:"RT0962",name:"Iqbal Naseem",doj:"05-Jan-26",desig:"Assistant Manager",mgr:"Rounak Jindal",mgrid:"RT0615",status:"Active",cc:"Infra",dept:"MIS",sub:"",cost:3400000},
+  {id:"RT0974",name:"Shailendra Tripathi",doj:"02-Feb-26",desig:"Senior Manager",mgr:"Rounak Jindal",mgrid:"RT0615",status:"Active",cc:"Infra",dept:"Imports",sub:"",cost:2400000},
+  {id:"FFIRT00506",name:"Danda Gowtham Kumar",doj:"09-Feb-26",desig:"Executive",mgr:"Amit Jha",mgrid:"RT0617",status:"Active",cc:"Infra",dept:"Enterprise Business",sub:"",cost:350000},
+  {id:"RT0983",name:"Kuldeep Jain",doj:"23-Feb-26",desig:"Manager",mgr:"Sunil Sharma",mgrid:"RT0682",status:"Active",cc:"Infra",dept:"Auction Business",sub:"",cost:1500000},
+  {id:"RT0988",name:"Debopam Ghosh",doj:"23-Mar-26",desig:"Manager",mgr:"Sunil Sharma",mgrid:"RT0682",status:"Active",cc:"Infra",dept:"Auction Business",sub:"",cost:1300000},
+  {id:"RT1001",name:"Vanga Prafulla Chandra",doj:"18-May-26",desig:"General Manager",mgr:"Rounak Jindal",mgrid:"RT0615",status:"Active",cc:"Infra",dept:"Imports",sub:"",cost:3136438},
+,
+  // ── AWF ──
+  {id:"RWF0237",name:"Poojarigow Vijaya kumar",doj:"15-Apr-26",desig:"Office Assistant",mgr:"Srilatha",mgrid:"RWF0098",status:"Active",cc:"AWF",dept:"ITC WOW Project",sub:"",cost:230795},
+  {id:"RWF0016",name:"R Kavitha",doj:"1-Apr-23",desig:"Propagation Executive",mgr:"Gangamma G",mgrid:"RWF0007",status:"Active",cc:"AWF",dept:"ITC WOW Project",sub:"",cost:264636},
+  {id:"RWF0083",name:"Abhishek Negi",doj:"1-Nov-23",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"JSW Project",sub:"Kedarnath",cost:271878},
+  {id:"RWF0087",name:"Vinay Kumar",doj:"1-Nov-23",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"JSW Project",sub:"Kedarnath",cost:271884},
+  {id:"RWF0094",name:"Shivesh Negi",doj:"11-Mar-24",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"JSW Project",sub:"Kedarnath",cost:272124},
+  {id:"RWF0048",name:"Mahadeva.B",doj:"01-Apr-23",desig:"Ward Co-Ordinator",mgr:"Krishna HS",mgrid:"RWF0037",status:"Active",cc:"AWF",dept:"ITC WOW Project",sub:"",cost:272664},
+  {id:"RWF0204",name:"Aradhana",doj:"22-Apr-26",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"Yamunotri",cost:257360},
+  {id:"RWF0205",name:"Amita",doj:"22-Apr-26",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"Yamunotri",cost:257360},
+  {id:"RWF0206",name:"Deepika",doj:"22-Apr-26",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"Yamunotri",cost:257360},
+  {id:"RWF0207",name:"Sapna",doj:"22-Apr-26",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"Yamunotri",cost:257360},
+  {id:"RWF0208",name:"Priyanka",doj:"22-Apr-26",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"Yamunotri",cost:257360},
+  {id:"RWF0210",name:"Simran",doj:"22-Apr-26",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"Yamunotri",cost:257360},
+  {id:"RWF0211",name:"Varsha",doj:"22-Apr-26",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"Yamunotri",cost:257360},
+  {id:"RWF0212",name:"Vanita",doj:"22-Apr-26",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"Gangotri",cost:257360},
+  {id:"RWF0213",name:"Saurabh Singh",doj:"22-Apr-26",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"Gangotri",cost:257360},
+  {id:"RWF0214",name:"Vikash Rana",doj:"22-Apr-26",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"Gangotri",cost:257360},
+  {id:"RWF0215",name:"Suraj Singh",doj:"22-Apr-26",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"Gangotri",cost:257360},
+  {id:"RWF0216",name:"Rakshak Panwar",doj:"22-Apr-26",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"Gangotri",cost:257360},
+  {id:"RWF0217",name:"Arti",doj:"22-Apr-26",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"Gangotri",cost:257360},
+  {id:"RWF0218",name:"Devsh Shah",doj:"22-Apr-26",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"Gangotri",cost:257360},
+  {id:"RWF0219",name:"Avinesh Gussain",doj:"22-Apr-26",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"Gangotri",cost:257360},
+  {id:"RWF0220",name:"Ambika Bhandari",doj:"22-Apr-26",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"Badrinath",cost:257360},
+  {id:"RWF0221",name:"Monika Panwar",doj:"22-Apr-26",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"Badrinath",cost:257360},
+  {id:"RWF0222",name:"Riya",doj:"22-Apr-26",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"Badrinath",cost:257360},
+  {id:"RWF0223",name:"Shradhaa",doj:"22-Apr-26",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"Badrinath",cost:257360},
+  {id:"RWF0224",name:"Tamanna bhat",doj:"22-Apr-26",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"Badrinath",cost:257360},
+  {id:"RWF0225",name:"Chandani Bhatt",doj:"22-Apr-26",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"Badrinath",cost:257360},
+  {id:"RWF0226",name:"Ankit Kumar",doj:"22-Apr-26",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"Badrinath",cost:257360},
+  {id:"RWF0227",name:"Vipin Singh",doj:"22-Apr-26",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"Kedarnath",cost:257360},
+  {id:"RWF0228",name:"Nishu",doj:"22-Apr-26",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"Kedarnath",cost:257360},
+  {id:"RWF0229",name:"Vishakha",doj:"22-Apr-26",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"Kedarnath",cost:257360},
+  {id:"RWF0230",name:"Rishabh Negi",doj:"22-Apr-26",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"Kedarnath",cost:257360},
+  {id:"RWF0231",name:"Nitin Negi",doj:"22-Apr-26",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"Kedarnath",cost:257360},
+  {id:"RWF0232",name:"Naveen Singh",doj:"22-Apr-26",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"Kedarnath",cost:257360},
+  {id:"RWF0233",name:"Ranjan",doj:"22-Apr-26",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"Kedarnath",cost:257360},
+  {id:"RWF0234",name:"Vishal",doj:"22-Apr-26",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"Kedarnath",cost:257360},
+  {id:"RWF0235",name:"Ankit Rawat",doj:"22-Apr-26",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"Kedarnath",cost:257360},
+  {id:"RWF0236",name:"Anchal",doj:"22-Apr-26",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"Kedarnath",cost:257360},
+  {id:"RWF0078",name:"Manjula TV",doj:"01-Sep-23",desig:"Hub Supervisor",mgr:"Srilatha",mgrid:"RWF0098",status:"Active",cc:"AWF",dept:"ITC WOW Project",sub:"",cost:304632},
+  {id:"RWF0058",name:"Yallavva Patil",doj:"01-Apr-23",desig:"Ward Co-Ordinator",mgr:"Mangal Mallappa Madiwalar",mgrid:"RWF0052",status:"Active",cc:"AWF",dept:"ITC WOW Project",sub:"",cost:312900},
+  {id:"RWF0137",name:"Nagaraju Gari Asha",doj:"10-Mar-25",desig:"Propagation Executive",mgr:"Srilatha",mgrid:"RWF0098",status:"Active",cc:"AWF",dept:"ITC WOW Project",sub:"",cost:318000},
+  {id:"RWF0138",name:"K Balakrishna Reddy",doj:"10-Mar-25",desig:"Propagation Executive",mgr:"Srilatha",mgrid:"RWF0098",status:"Active",cc:"AWF",dept:"ITC WOW Project",sub:"",cost:318000},
+  {id:"RWF0139",name:"Nethravathi T N",doj:"01-April-25",desig:"Propagation Executive",mgr:"Srilatha",mgrid:"RWF0098",status:"Active",cc:"AWF",dept:"ITC WOW Project",sub:"",cost:318000},
+  {id:"RWF0010",name:"Mahesha C L",doj:"01-Apr-23",desig:"Propagation Executive",mgr:"Gangamma G",mgrid:"RWF0007",status:"Active",cc:"AWF",dept:"ITC WOW Project",sub:"",cost:324816},
+  {id:"RWF0057",name:"Pradeep B",doj:"1-Apr-23",desig:"Ward Co-Ordinator",mgr:"Srilatha",mgrid:"RWF0098",status:"Active",cc:"AWF",dept:"ITC WOW Project",sub:"",cost:325512},
+  {id:"RWF0020",name:"Yatheesh M V",doj:"01-Apr-23",desig:"Coordinator Operations",mgr:"Krishna HS",mgrid:"RWF0037",status:"Active",cc:"AWF",dept:"ITC WOW Project",sub:"",cost:332568},
+  {id:"RWF0005",name:"Chetan Yadav",doj:"1-Apr-23",desig:"Senior Executive - HR",mgr:"Krishna HS",mgrid:"RWF0037",status:"Active",cc:"AWF",dept:"ITC WOW Project",sub:"",cost:337464},
+  {id:"RWF0202",name:"Raveesha S D",doj:"1-Oct-25",desig:"Senior EI-Coordinator",mgr:"Krishna HS",mgrid:"RWF0037",status:"Active",cc:"AWF",dept:"ITC WOW Project",sub:"",cost:360000},
+  {id:"RWF0055",name:"Triveni Annigerimath",doj:"1-Apr-23",desig:"Ward Co-Ordinator",mgr:"Srilatha",mgrid:"RWF0098",status:"Active",cc:"AWF",dept:"ITC WOW Project",sub:"",cost:371160},
+  {id:"RWF0091",name:"Sahil Sakharam Naik",doj:"18-Dec-23",desig:"Executive",mgr:"Md Gulshad",mgrid:"RWF0088",status:"Active",cc:"AWF",dept:"Mondelez Project",sub:"Awareness",cost:375000},
+  {id:"RWF0042",name:"Sriramachandra",doj:"01-Apr-23",desig:"EI CO-ORDINATOR",mgr:"Srilatha",mgrid:"RWF0098",status:"Active",cc:"AWF",dept:"ITC WOW Project",sub:"",cost:386760},
+  {id:"RWF0052",name:"Mangal Mallappa Madiwalar",doj:"01-Apr-23",desig:"Division Co-ordinator",mgr:"Krishna HS",mgrid:"RWF0037",status:"Active",cc:"AWF",dept:"ITC WOW Project",sub:"",cost:410916},
+  {id:"RWF0007",name:"Gangamma G",doj:"01-Apr-23",desig:"Zonal Co-ordinator",mgr:"Krishna HS",mgrid:"RWF0037",status:"Active",cc:"AWF",dept:"ITC WOW Project",sub:"",cost:412344},
+  {id:"RWF0082",name:"Sushma Devi",doj:"01-Nov-23",desig:"Manager",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"JSW Project",sub:"Kedarnath",cost:422000},
+  {id:"RWF0021",name:"Ragi Yedukondalu",doj:"01-Apr-23",desig:"Program Coordinator",mgr:"Srinatha TV",mgrid:"RWF0004",status:"Active",cc:"AWF",dept:"ITC WOW Project",sub:"",cost:425304},
+  {id:"RWF0198",name:"G Manikanta",doj:"11-Jun-25",desig:"Program Coordinator",mgr:"Srilatha",mgrid:"RWF0098",status:"Active",cc:"AWF",dept:"ITC WOW Project",sub:"",cost:431952},
+  {id:"RWF0090",name:"Chinmay Alias Mahadev Kelkar",doj:"4-Dec-23",desig:"EXecutive",mgr:"Ila Florance Joseph",mgrid:"RWF0092",status:"Active",cc:"AWF",dept:"Mondelez Project",sub:"Awareness",cost:439200},
+  {id:"RWF0135",name:"Rajat Ramesh Gadekar",doj:"10-Jan-25",desig:"Project Executive",mgr:"B S Manideep",mgrid:"RWF0104",status:"Active",cc:"AWF",dept:"Mondelez Project",sub:"Awareness",cost:450000},
+  {id:"RWF0003",name:"Manjunath S Doddamani",doj:"01-Apr-23",desig:"Senior Accountant",mgr:"Krishna HS",mgrid:"RWF0037",status:"Active",cc:"AWF",dept:"ITC WOW Project",sub:"",cost:484392},
+  {id:"RWF0136",name:"Dhaanyashree G",doj:"24-Mar-25",desig:"Content Writer",mgr:"Ila Florance Joseph",mgrid:"RWF0092",status:"Active",cc:"AWF",dept:"Anubhuti Welfare Foundation",sub:"Awareness",cost:500000},
+  {id:"RWF0025",name:"Anuverta Binitee Chettri",doj:"1-Apr-23",desig:"Senior Program Coordinator",mgr:"Srilatha",mgrid:"RWF0098",status:"Active",cc:"AWF",dept:"ITC WOW Project",sub:"",cost:506220},
+  {id:"RWF0088",name:"Md Gulshad",doj:"25-November-23",desig:"Senior Executive",mgr:"Ila Florance Joseph",mgrid:"RWF0092",status:"Active",cc:"AWF",dept:"Mondelez Project",sub:"Operations",cost:516150},
+  {id:"RWF0098",name:"Srilatha",doj:"1-April-24",desig:"Executive - RWA",mgr:"Krishna HS",mgrid:"RWF0037",status:"Active",cc:"AWF",dept:"ITC WOW Project",sub:"",cost:519576},
+  {id:"RWF0099",name:"Sharath R",doj:"01-Apr-24",desig:"Senior Executive",mgr:"Srilatha",mgrid:"RWF0098",status:"Active",cc:"AWF",dept:"ITC WOW Project",sub:"",cost:522204},
+  {id:"RWF0103",name:"Gaddoju Pavankumar",doj:"01-Apr-24",desig:"Graphic Designer",mgr:"B S Manideep",mgrid:"RWF0104",status:"Active",cc:"AWF",dept:"Mondelez Project",sub:"NA",cost:700640},
+  {id:"RWF0102",name:"Pachava Saiteja",doj:"01-Apr-24",desig:"Motion Graphic Designer",mgr:"Ila Florance Joseph",mgrid:"RWF0092",status:"Active",cc:"AWF",dept:"Mondelez Project",sub:"NA",cost:705120},
+  {id:"RWF0104",name:"B S Manideep",doj:"01-Apr-24",desig:"Manager - Content & Communication",mgr:"Ila Florance Joseph",mgrid:"RWF0092",status:"Active",cc:"AWF",dept:"Mondelez Project",sub:"NA",cost:748800},
+  {id:"RWF0004",name:"Srinatha TV",doj:"01-Apr-23",desig:"Senior Manager - Corporate Logistics",mgr:"Krishna HS",mgrid:"RWF0037",status:"Active",cc:"AWF",dept:"ITC WOW Project",sub:"",cost:761808},
+  {id:"RWF0134",name:"Soumya Bhusan Nanda",doj:"23-Dec-24",desig:"Project Administrator",mgr:"Ila Florance Joseph",mgrid:"RWF0092",status:"Active",cc:"AWF",dept:"Mondelez Project",sub:"NA",cost:900000},
+  {id:"RWF0037",name:"Krishna HS",doj:"01-Apr-23",desig:"Head - Operations",mgr:"Ila Florance Joseph",mgrid:"RWF0092",status:"Active",cc:"AWF",dept:"ITC WOW Project",sub:"",cost:919452},
+  {id:"RWF0092",name:"Ila Florance Joseph",doj:"03-Jan-24",desig:"Head - Projects",mgr:"Ekta Narain",mgrid:"RT0130",status:"Active",cc:"AWF",dept:"Mondelez Project",sub:"NA",cost:1845750},
+  {id:"RWF0238",name:"Abhinav Negi",doj:"18-May-26",desig:"Project Analyst",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"",cost:313644},
+  {id:"RWF0239",name:"Akash",doj:"25-May-26",desig:"Executive",mgr:"S V S N Murthy",mgrid:"RT0275",status:"Active",cc:"AWF",dept:"dDRS",sub:"",cost:184044},
+  // ── ONBOARDING & COLLECTION ──
+  {id:"RT0725",name:"Ajay Vunyale",doj:"12-Aug-24",desig:"Assistant Manager - Credit Underwriting",mgr:"Arun Pillai",mgrid:"RT0800",status:"Active",cc:"OC",dept:"Onboarding",sub:"",cost:1300500},
+  {id:"RT0741",name:"Suresh Venkatesh",doj:"01-Oct-24",desig:"Assistant Manager - Inside Sales",mgr:"Srikrishna B",mgrid:"RT0411",status:"Active",cc:"OC",dept:"Collections",sub:"",cost:817800},
+  {id:"FFIRT00334",name:"Ayila Vamsi Krishna",doj:"10-February-25",desig:"Senior Executive",mgr:"Ajay Vunyale",mgrid:"RT0725",status:"Active",cc:"OC",dept:"Onboarding",sub:"",cost:1000000},
+  {id:"RT0800",name:"Arun Pillai",doj:"17-February-25",desig:"General Manager",mgr:"Abhishek Arvind Deshpande",mgrid:"RT0005",status:"Active",cc:"OC",dept:"Onboarding",sub:"",cost:5295000},
+  {id:"FFIRT00366",name:"Challakonda Sai Nitin",doj:"22-May-25",desig:"Executive",mgr:"Dundi Srinivasa Reddy",mgrid:"RT0909",status:"Active",cc:"OC",dept:"Collections",sub:"",cost:450000},
+  {id:"FFIRT00372",name:"Balaga Pallavi",doj:"09-Jun-25",desig:"Executive",mgr:"Dundi Srinivasa Reddy",mgrid:"RT0909",status:"Active",cc:"OC",dept:"Collections",sub:"",cost:450000},
+  {id:"RT0874",name:"Ankur Kumar",doj:"21-Jul-25",desig:"Assistant Manager",mgr:"Arun Pillai",mgrid:"RT0800",status:"Active",cc:"OC",dept:"Collection",sub:"",cost:970000},
+  {id:"RT0909",name:"Dundi Srinivasa Reddy",doj:"08-Sep-25",desig:"Assistant Manager - MIS",mgr:"Arun Pillai",mgrid:"RT0800",status:"Active",cc:"OC",dept:"Collection",sub:"",cost:850000},
+  {id:"FFIRT00478",name:"Harshita",doj:"25-Sep-25",desig:"Executive",mgr:"Ajay Vunyale",mgrid:"RT0725",status:"Active",cc:"OC",dept:"Onboarding",sub:"",cost:450000},
+  {id:"RT0919",name:"Ravi D Naik",doj:"25-Sep-25",desig:"Manager",mgr:"Arun Pillai",mgrid:"RT0800",status:"Active",cc:"OC",dept:"Collection",sub:"",cost:1700000},
+  {id:"RT0929",name:"Paravada Naveenranga",doj:"01-Oct-25",desig:"Senior Executive - Finance",mgr:"Gundapuneni Sandeep Kumar",mgrid:"RT0785",status:"Active",cc:"OC",dept:"Onboarding",sub:"",cost:700000},
+  {id:"RT0978",name:"Vishwash Tiwari",doj:"09-Feb-26",desig:"Management Trainee",mgr:"Kunduru Rahul Reddy",mgrid:"RT0955",status:"Active",cc:"OC",dept:"Onboarding",sub:"",cost:800000},
+  // ── FACILITY MANAGEMENT ──
+  {id:"RT0045",name:"V Kishore Kumar",doj:"27-Mar-17",desig:"Office Associate - Admin",mgr:"N Sai Saileesh",mgrid:"RT0188",status:"Active",cc:"Facility",dept:"Administration",sub:"",cost:338600},
+  {id:"RT0113",name:"Krishna .P",doj:"27-December-18",desig:"Executive - Admin",mgr:"N Sai Saileesh",mgrid:"RT0188",status:"Active",cc:"Facility",dept:"Driver",sub:"",cost:338600},
+  {id:"RT0188",name:"N Sai Saileesh",doj:"24-Aug-20",desig:"Assistant Manager - Admin",mgr:"Shanmugam Aruna",mgrid:"RT0780",status:"Active",cc:"Facility",dept:"Administration",sub:"",cost:943000},
+  {id:"RT0245",name:"Ashok Kumar G",doj:"26-Apr-21",desig:"Office Associate - Admin",mgr:"N Sai Saileesh",mgrid:"RT0188",status:"Active",cc:"Facility",dept:"Administration",sub:"",cost:358000},
+  {id:"FFIRT00047",name:"Nandu Kumar",doj:"1-Aug-22",desig:"Office Associate - Facility Management",mgr:"N Sai Saileesh",mgrid:"RT0188",status:"Active",cc:"Facility",dept:"Driver",sub:"",cost:277350},
+  {id:"FFIRT00346",name:"Satyam Kumar",doj:"01-Apr-25",desig:"Senior Executive",mgr:"Shanmugam Aruna",mgrid:"RT0780",status:"Resigned",cc:"Facility",dept:"Travel Desk",sub:"",cost:200274},
+  {id:"FFIRT00537",name:"Naveen Babu Sesetty",doj:"13-Apr-26",desig:"Senior Executive",mgr:"Shanmugam Aruna",mgrid:"RT0780",status:"Active",cc:"Facility",dept:"Administration",sub:"",cost:628630},
+  // ── COMPLIANCE ──
+  {id:"RT0994",name:"Narendra Kumar Purohit",doj:"13-Apr-26",desig:"Senior General Manager",mgr:"Vijay Kumar Vanparthi",mgrid:"RT0149",status:"Active",cc:"Compliance",dept:"Compliance",sub:"",cost:4158630},
+  {id:"RT0997",name:"Rosy Khan",doj:"23-Apr-26",desig:"Senior Manager",mgr:"Narendra Kumar Purohit",mgrid:"RT0994",status:"Active",cc:"Compliance",dept:"Compliance",sub:"",cost:1879452},
+,
+  // ── AFR ──
+  {id:"RT0011",name:"Balajee Yerraboina",doj:"01-Jul-16",desig:"Manager",mgr:"Charan Kumar Bojja",mgrid:"RT0972",status:"Active",cc:"AFR",dept:"Operations",sub:"",cost:1022300},
+  {id:"RT0096",name:"Umesh V Aundhekar",doj:"1-Jul-18",desig:"Assistant Vice President - Operations",mgr:"Ekta Narain",mgrid:"RT0130",status:"Active",cc:"AFR",dept:"Sales",sub:"",cost:3575000},
+  {id:"RT0348",name:"Swati Singh",doj:"01-Feb-22",desig:"Senior Manager - Sustainability Strategy",mgr:"Ekta Narain",mgrid:"RT0130",status:"Active",cc:"AFR",dept:"Sales",sub:"",cost:2366700},
+  {id:"RT0373",name:"Akhil R",doj:"24-Mar-22",desig:"Manager - Sales",mgr:"Suraj Sundar",mgrid:"RT0796",status:"Active",cc:"AFR",dept:"Sales",sub:"",cost:1583100},
+  {id:"RT0401",name:"Arempula Chandu",doj:"23-May-22",desig:"Senior Executive",mgr:"Ila Florance Joseph",mgrid:"RWF0092",status:"Active",cc:"AFR",dept:"Sales",sub:"",cost:438200},
+  {id:"FFIRT00126",name:"Satyam Shahi",doj:"7-Apr-23",desig:"Senior Project Executive",mgr:"Goni Vivek Vardhan",mgrid:"RT0936",status:"Active",cc:"AFR",dept:"Projects",sub:"",cost:460800},
+  {id:"FFIRT00278",name:"Aaryan Vijay Kumar",doj:"24-June-24",desig:"Senior Executive - Rethink+",mgr:"Ila Florance Joseph",mgrid:"RWF0092",status:"Active",cc:"AFR",dept:"Projects",sub:"",cost:632500},
+  {id:"FFIRT00301",name:"Shant Kumar",doj:"14-Oct-24",desig:"Senior Executive",mgr:"Goni Vivek Vardhan",mgrid:"RT0936",status:"Active",cc:"AFR",dept:"Projects",sub:"",cost:550000},
+  {id:"FFIRT00332",name:"Chunchu Manish",doj:"3-Feb-25",desig:"Executive",mgr:"Ila Florance Joseph",mgrid:"RWF0092",status:"Active",cc:"AFR",dept:"Operations",sub:"",cost:500000},
+  {id:"RT0936",name:"Goni Vivek Vardhan",doj:"01-Oct-25",desig:"Assistant Manager",mgr:"Ila Florance Joseph",mgrid:"RWF0092",status:"Active",cc:"AFR",dept:"Projects",sub:"",cost:673747},
+  {id:"RT0966",name:"Pydi Sivaram",doj:"05-Jan-26",desig:"Assistant Manager",mgr:"G.Ramesh",mgrid:"RT0106",status:"Active",cc:"AFR",dept:"Operations",sub:"",cost:1050000},
+  {id:"FFIRT00496",name:"Ankur Gupta",doj:"05-Jan-26",desig:"Senior Executive",mgr:"Tushar Sachdeva",mgrid:"RT0891",status:"Active",cc:"AFR",dept:"Operations",sub:"",cost:650000},
+  {id:"RT0972",name:"Charan Kumar Bojja",doj:"22-Jan-26",desig:"Assistant General Manager",mgr:"Ekta Narain",mgrid:"RT0130",status:"Resigned",cc:"AFR",dept:"Operations",sub:"",cost:636712},
+];
+
+// ── VIRTUAL NODES (external managers not in CSV) ──
+const VIRTUALS = [
+  {id:"VIRT_VIKRAM",name:"Vikram Loka Prabakar",doj:"",desig:"CPTO",mgr:"Leadership",mgrid:"",status:"External",cc:"Technology",dept:"Technology",sub:"",isVirtual:true,cost:0},
+  {id:"VIRT_SUJAN",name:"Tirumala Vangipuram Sujan",doj:"",desig:"CEO - Retearn",mgr:"Leadership",mgrid:"",status:"External",cc:"Retearn",dept:"Head",sub:"",isVirtual:true,cost:0},
+  {id:"VIRT_SANKET",name:"Sanket Waghmare",doj:"",desig:"Sr Engineering Manager AI (shared)",mgr:"Tirumala Vangipuram Sujan",mgrid:"VIRT_SUJAN",status:"Active",cc:"Retearn",dept:"Engineering",sub:"AI",isVirtual:false,cost:0},
+  {id:"VIRT_VIJAY",name:"Vijay Kumar Vanparthi",doj:"",desig:"CFO · Head - Finance & Legal",level:"EXT",mgr:"Leadership",mgrid:"",status:"External",cc:"Finance",dept:"Finance",sub:"",isVirtual:true}
+];
+VIRTUALS.forEach(v=>EMP.push(v));
+
+// mgrid remapping: Aparna & Kallakuri have mgrid RT0114 (Anusuya) → remap to virtual
+// Pulkit & Adity have mgrid RT0696 (Vinay Agarwal) → remap to virtual
+const MGRID_REMAP = {};
+
+// ── EPR CONFIG ──
+const EPR_DEPTS = [
+  {key:"Sales",       color:"purple", topLevelIds:["RT0796","RT0227","RT0515","RT0578"]},
+  {key:"Operations",  color:"teal",   topLevelIds:["RT0958","RT0265"]},
+  {key:"Audit & Compliance", color:"amber", topLevelIds:["RT0323"]},
+  {key:"Capacity Building",  color:"green", topLevelIds:["RT0128"]}
+];
+
+// ── FINANCE CONFIG ──
+// Each functional area = one dept column, headed by its manager
+// Raveendra shown in org-top bar as Finance head (like Srikrishna in EPR)
+const FINANCE_DEPTS = [
+  {key:"OPEX & CAPEX · TDS",      color:"blue",   topLevelIds:["RT0537"]},
+  {key:"EPR & Salaries",          color:"teal",   topLevelIds:["RT0185"]},
+  {key:"Treasury & Payments",     color:"green",  topLevelIds:["RT0317"]},
+  {key:"MIS & Expenses",          color:"amber",  topLevelIds:["RT0982"]},
+  {key:"Legal",                   color:"indigo", topLevelIds:["RT0360"]}
+];
+
+const PC_DEPTS = [
+  {key:"Talent Acquisition",     color:"purple", topLevelIds:["RT0420"]},
+  {key:"Learning & Engagement",  color:"teal",   topLevelIds:["RT0531"]},
+  {key:"Business Partner",       color:"blue",   topLevelIds:["RT0781","RT0992","RT0993"]},
+  {key:"Compensation & Benefits",color:"amber",  topLevelIds:["RT0917"]}
+];
+
+const TECH_DEPTS = [
+  {key:"Engineering", color:"blue",   topLevelIds:["RT0345","RT0260","RT0267"]},
+  {key:"Product",     color:"purple", topLevelIds:["RT0955","RT0643","RT0036","RT0916"]}
+];
+
+const RETEARN_DEPTS = [
+  {key:"Engineering",        color:"blue",   topLevelIds:["RE0005","VIRT_SANKET"]},
+  {key:"Product & Strategy", color:"purple", topLevelIds:["RE0003","RE0009"]},
+  {key:"Operations",         color:"teal",   topLevelIds:["RE0011","RE0008"]},
+  {key:"Research (R&D)",     color:"green",  topLevelIds:["RE0015"]},
+  {key:"Support",            color:"amber",  topLevelIds:["RE0027"]},
+  {key:"Finance",            color:"gray",   topLevelIds:["RE0026"]}
+];
+
+const INFRA_DEPTS = [
+  {key:"Auction Business",   color:"amber",  topLevelIds:["RT0682"]},
+  {key:"Enterprise Business",color:"blue",   topLevelIds:["RT0691","RT0841","FFIRT00506"]},
+  {key:"URD Business",       color:"teal",   topLevelIds:["RT0769","RT0940","RT0823","FFIRT00354"]},
+  {key:"Imports",            color:"green",  topLevelIds:["RT0840","RT0974","RT1001"]},
+  {key:"Operations",         color:"purple", topLevelIds:["RT0765"]},
+  {key:"Finance & MIS",      color:"gray",   topLevelIds:["RT0785","RT0962","RT0191"]}
+];
+
+const AWF_DEPTS = [
+  {key:"ITC WOW Project",              color:"teal",   topLevelIds:["RWF0037"]},
+  {key:"JSW Project",                  color:"blue",   topLevelIds:["RWF0082","RWF0083","RWF0087","RWF0094"]},
+  {key:"dDRS",                         color:"green",  topLevelIds:["RWF0238","RWF0239","RWF0204","RWF0205","RWF0206","RWF0207","RWF0208","RWF0210","RWF0211","RWF0212","RWF0213","RWF0214","RWF0215","RWF0216","RWF0217","RWF0218","RWF0219","RWF0220","RWF0221","RWF0222","RWF0223","RWF0224","RWF0225","RWF0226","RWF0227","RWF0228","RWF0229","RWF0230","RWF0231","RWF0232","RWF0233","RWF0234","RWF0235","RWF0236"]},
+  {key:"Mondelez Project",             color:"purple", topLevelIds:["RWF0104","RWF0088","RWF0090","RWF0102","RWF0134"]},
+  {key:"Anubhuti Welfare Foundation",  color:"rose",   topLevelIds:["RWF0136"]}
+];
+
+const OC_DEPTS = [
+  {key:"Onboarding",  color:"blue",   topLevelIds:["RT0725","RT0929","RT0978"]},
+  {key:"Collection",  color:"teal",   topLevelIds:["RT0909","RT0919","RT0874","RT0741"]}
+];
+
+const FACILITY_DEPTS = [
+  {key:"Administration", color:"blue",  topLevelIds:["RT0188","FFIRT00537"]},
+  {key:"Driver",         color:"gray",  topLevelIds:["RT0113","FFIRT00047"]},
+  {key:"Travel Desk",    color:"amber", topLevelIds:["FFIRT00346"]}
+];
+
+const COMPLIANCE_DEPTS = [
+  {key:"Compliance", color:"amber", topLevelIds:["RT0994"]}
+];
+
+const AFR_DEPTS = [
+  {key:"Sales",      color:"purple", topLevelIds:["RT0096","RT0348","RT0373","RT0401"]},
+  {key:"Projects",   color:"blue",   topLevelIds:["RT0936","FFIRT00278"]},
+  {key:"Operations", color:"teal",   topLevelIds:["RT0972","RT0966","FFIRT00496","FFIRT00332"]}
+];
+
+const DEPT_C = {
+  purple:{dot:"#4F46A0",light:"#ECEAFF",text:"#3C3489"},
+  teal:  {dot:"#0E6E57",light:"#E0F4EE",text:"#074E3D"},
+  amber: {dot:"#B06B14",light:"#FEF0DC",text:"#7A4A0C"},
+  green: {dot:"#2F6B1A",light:"#EAF4E2",text:"#1D4510"},
+  gray:  {dot:"#5A5652",light:"#F0EEE9",text:"#3A3835"},
+  blue:  {dot:"#1558A0",light:"#E5EFFC",text:"#0C3C72"},
+  indigo:{dot:"#3730A3",light:"#EEF2FF",text:"#312E81"}
+};
+
+// ── UTILS ──
+const byId={};
+EMP.forEach(e=>byId[e.id]=e);
+
+function ini(n){return n.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();}
+function reps(id){return EMP.filter(e=>(MGRID_REMAP[e.mgrid]||e.mgrid)===id&&e.id!==id&&!e.deptHead);}
+function tenure(doj){
+  if(!doj)return'—';
+  const ms=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const p=doj.split('-');
+  const yr=parseInt(p[2])<50?2000+parseInt(p[2]):1900+parseInt(p[2]);
+  const diff=(new Date(2026,5,6)-new Date(yr,ms.indexOf(p[1]),parseInt(p[0])))/(864e5*365);
+  if(diff<1)return'<1yr';
+  const y=Math.floor(diff),mo=Math.floor((diff-y)*12);
+  return y+'y'+(mo?' '+mo+'m':'');
+}
+function avCls(id){
+  const e=byId[id];if(!e)return'av-gray';
+  const d=(e.dept||'').toLowerCase();
+  if(d.includes('sales'))return'av-purple';
+  if(d.includes('op'))return'av-teal';
+  if(d.includes('audit')||d.includes('comp'))return'av-amber';
+  if(d.includes('cap'))return'av-green';
+  if(d.includes('legal'))return'av-indigo';
+  if(d.includes('finance'))return'av-blue';
+  return'av-gray';
+}
+
+// ── TOOLTIP ──
+function showTip(id,el){
+  const e=byId[id];if(!e)return;
+  const r=reps(id);
+  const isExt=e.isVirtual;
+  document.getElementById('tip-head').innerHTML=`
+    <div class="tip-av ${avCls(id)}" ${isExt?'style="border:2px dashed #C4A97A"':''}>${ini(e.name)}</div>
+    <div style="flex:1;min-width:0">
+      <div class="tip-name">${e.name}${isExt?' <span style="font-size:9px;color:var(--text3)">(External)</span>':''}</div>
+      <div class="tip-desig">${e.desig}</div>
+    </div>
+    <button class="tip-close" onclick="hideTip()">×</button>`;
+  document.getElementById('tip-body').innerHTML=isExt?`
+    <div class="tip-row"><span class="tip-key">Type</span><span class="tip-val plain" style="color:#8B7355">External</span></div>
+    <div class="tip-row"><span class="tip-key">Direct reports</span><span class="tip-val plain">${r.length}</span></div>`:`
+    <div class="tip-row"><span class="tip-key">Emp ID</span><span class="tip-val">${e.id}</span></div>
+    <div class="tip-row"><span class="tip-key">Joined</span><span class="tip-val">${e.doj}</span></div>
+    <div class="tip-row"><span class="tip-key">Tenure</span><span class="tip-val plain">${tenure(e.doj)}</span></div>
+    <div class="tip-row"><span class="tip-key">Reports to</span><span class="tip-val plain">${e.mgr}</span></div>
+    <div class="tip-row"><span class="tip-key">Department</span><span class="tip-val plain">${e.dept||'—'}</span></div>
+    ${e.sub?`<div class="tip-row"><span class="tip-key">Function</span><span class="tip-val plain">${e.sub}</span></div>`:''}
+    <div class="tip-row"><span class="tip-key">Status</span><span class="tip-val plain" style="color:${e.status==='Active'?'var(--teal)':'var(--red)'}">${e.status}</span></div>
+    ${e.isConsultant?`<div class="tip-row"><span class="tip-key">Type</span><span class="tip-val plain" style="color:var(--amber)">Consultant / RIC</span></div>`:''}
+    <div class="tip-row"><span class="tip-key">Direct reports</span><span class="tip-val plain">${r.length}</span></div>`;
+  const tip=document.getElementById('tip');
+  tip.style.display='block';
+  const rect=el.getBoundingClientRect();
+  const tw=260,th=tip.offsetHeight||260;
+  let left=rect.right+10,top=rect.top;
+  if(left+tw>window.innerWidth-10)left=rect.left-tw-10;
+  if(top+th>window.innerHeight-10)top=window.innerHeight-th-10;
+  if(top<10)top=10;
+  tip.style.left=left+'px';tip.style.top=top+'px';
+}
+function hideTip(){document.getElementById('tip').style.display='none';}
+document.addEventListener('click',e=>{
+  const tip=document.getElementById('tip');
+  if(tip.style.display==='block'&&!tip.contains(e.target)&&
+     !e.target.classList.contains('p-name')&&!e.target.classList.contains('s-name')&&
+     !e.target.classList.contains('t-name')&&!e.target.classList.contains('pl-name'))hideTip();
+});
+
+// ── DRILL TOGGLE ──
+function toggleDrill(id){
+  const dr=document.getElementById('dr-'+id),ch=document.getElementById('ch-'+id);
+  if(dr){const o=dr.classList.toggle('open');if(ch)ch.classList.toggle('open',o);}
+}
+function toggleDrill2(id){
+  const dr=document.getElementById('dr2-'+id),ch=document.getElementById('ch2-'+id);
+  if(dr){const o=dr.classList.toggle('open');if(ch)ch.classList.toggle('open',o);}
+}
+
+// ── RENDER LEVEL 3 ──
+function renderL3(emp){
+  const r=reps(emp.id);
+  return`<div class="tcard ${emp.status==='Resigned'?'resigned-card':''}">
+    <div class="t-av">${ini(emp.name)}</div>
+    <div style="flex:1;min-width:0">
+      <span class="t-name" onclick="event.stopPropagation();showTip('${emp.id}',this)">${emp.name}</span>
+      <div class="t-role">${emp.desig}</div>
+    </div>
+    ${emp.isConsultant?'<span class="ric-tag">RIC</span>':''}
+    <div class="status-dot" style="background:${emp.status==='Active'?'var(--teal)':'var(--red)'}"></div>
+  </div>${r.length>0?`<div style="margin-left:12px;border-left:1.5px solid var(--border);padding-left:7px">${r.map(x=>renderL3(x)).join('')}</div>`:''}`;
+}
+
+// ── RENDER LEVEL 2 ──
+function renderL2(emp){
+  const r=reps(emp.id);
+  const activeR=r.filter(x=>x.status==='Active'||x.isVirtual).length;
+  const drHtml=r.length>0?`<div class="drill" id="dr-${emp.id}">${r.map(x=>renderL3(x)).join('')}</div>`:'';
+  const isExt=emp.isVirtual;
+  return`
+    <div class="scard ${emp.status==='Resigned'?'resigned-card':''}" style="${isExt?'border-style:dashed;border-color:#C4A97A;background:#FDF8F0':''}">
+      <div class="s-av ${avCls(emp.id)}" ${isExt?'style="background:#8B7355;color:#F5F0E8"':''}>${ini(emp.name)}</div>
+      <div class="s-info">
+        <span class="s-name" onclick="event.stopPropagation();showTip('${emp.id}',this)">${emp.name}</span>
+        ${isExt?'<span style="font-size:9px;color:var(--text3);margin-left:4px">(External)</span>':''}
+        <div class="s-role">${emp.desig}${emp.isConsultant?'&nbsp;<span class="ric-tag">RIC</span>':''}</div>
+      </div>
+      <div class="s-right">
+        ${r.length>0?`<span class="s-expand" onclick="event.stopPropagation();toggleDrill('${emp.id}')">${activeR} ↓</span>
+        <span class="s-chev" id="ch-${emp.id}" onclick="event.stopPropagation();toggleDrill('${emp.id}')">›</span>`:`<div class="status-dot" style="background:${emp.status==='Active'||isExt?'var(--teal)':'var(--red)'}"></div>`}
+      </div>
+    </div>${drHtml}`;
+}
+
+// ── RENDER TOP CARD ──
+function renderTopCard(emp, color){
+  const r=reps(emp.id);
+  const activeR=r.filter(x=>x.status==='Active'||x.isVirtual).length;
+  const isExt=emp.isVirtual;
+  const drHtml=r.length>0?`<div class="drill" id="dr-${emp.id}">${r.map(m=>renderL2(m)).join('')}</div>`:'';
+  return`
+    <div class="pcard ${emp.status==='Resigned'?'resigned-card':''}" style="${isExt?'border-style:dashed;border-color:#C4A97A;background:#FDF8F0':''}">
+      <div class="p-av av-${color}" ${isExt?'style="background:#8B7355;color:#F5F0E8"':''}>${ini(emp.name)}</div>
+      <div class="p-info">
+        ${isExt?'<span style="font-size:9px;color:#8B7355;font-weight:600;letter-spacing:.03em">EXTERNAL</span><br>':''}
+        <span class="p-name" onclick="event.stopPropagation();showTip('${emp.id}',this)">${emp.name}</span>
+        <div class="p-role">${emp.desig}${emp.isConsultant?'&nbsp;<span class="ric-tag">RIC</span>':''}</div>
+      </div>
+      <div class="p-right">
+        ${r.length>0?`<span class="expand-btn" onclick="toggleDrill('${emp.id}')">${activeR} ↓</span>
+        <span class="chev" id="ch-${emp.id}" onclick="toggleDrill('${emp.id}')">›</span>`:`<div class="status-dot" style="background:${emp.status==='Active'?'var(--teal)':'var(--red)'}"></div>`}
+      </div>
+    </div>${drHtml}`;
+}
+
+// ── DEPT COLUMN BUILDER ──
+function buildDeptCol(dept, ccEmps){
+  const col=DEPT_C[dept.color]||DEPT_C.gray;
+  const deptEmps=ccEmps.filter(e=>{
+    const d=(e.dept||'').toLowerCase(),k=dept.key.toLowerCase();
+    return d===k||d.includes(k.split(' ')[0])||k.includes(d.split(' ')[0]);
+  });
+  const activeCnt=deptEmps.filter(e=>e.status==='Active').length;
+  const topCards=dept.topLevelIds.map(id=>byId[id]).filter(Boolean)
+    .map(e=>renderTopCard(e,dept.color)).join('');
+  return`<div class="dept-col">
+    <div class="dept-hd">
+      <div class="dept-hd-row">
+        <div class="dept-title"><span class="dept-dot" style="background:${col.dot}"></span>${dept.key}</div>
+        <span class="dept-cnt" style="background:${col.light};color:${col.text}">${activeCnt}</span>
+      </div>
+    </div>
+    <div class="dept-body">${topCards||'<div style="color:var(--text3);font-size:12px;padding:10px 4px">No members mapped</div>'}</div>
+    ${buildKRAFooter(dept.key, col)}
+  </div>`;
+}
+
+// ── STATS ──
+function buildStats(ccEmps, cc){
+  const countable = ccEmps.filter(e=>!e.isVirtual&&!e.excludeFromCount);
+  const active=countable.filter(e=>e.status==='Active').length;
+  const resigned=countable.filter(e=>e.status==='Resigned').length;
+  const totalCost=countable.filter(e=>e.status==='Active').reduce((s,e)=>s+(e.cost||0),0);
+  function fmtCost(n){
+    if(!n||n===0)return'—';
+    if(n>=1e7)return'₹'+(n/1e7).toFixed(1)+'Cr';
+    if(n>=1e5)return'₹'+(n/1e5).toFixed(1)+'L';
+    return'₹'+n.toLocaleString('en-IN');
+  }
+  document.getElementById('stats').innerHTML=`
+    <div class="sc"><div class="sc-lbl">Total · ${cc}</div><div class="sc-val">${countable.length}</div><div class="sc-sub">All headcount</div></div>
+    <div class="sc"><div class="sc-lbl">Active</div><div class="sc-val val-green">${active}</div><div class="sc-sub">Currently active</div></div>
+    <div class="sc"><div class="sc-lbl">Resigned</div><div class="sc-val val-red">${resigned}</div><div class="sc-sub">Attrition</div></div>
+    <div class="sc"><div class="sc-lbl">Open Positions</div><div class="sc-val val-amber">—</div><div class="sc-sub">Update manually</div></div>
+    <div class="sc" style="border-left:2px solid var(--amber);padding-left:11px">
+      <div class="sc-lbl">Total Employee Cost</div>
+      <div class="sc-val val-amber" style="font-size:${totalCost>=1e7?'18':'24'}px">${fmtCost(totalCost)}</div>
+      <div class="sc-sub">Active employees · Annual</div>
+    </div>`;
+}
+
+// ── RENDER EPR ──
+function renderEPR(ccEmps){
+  const pl=byId['RT0411'];
+  document.getElementById('org-top').innerHTML=`
+    <div class="pl-av av-purple">${ini(pl.name)}</div>
+    <div><div class="pl-name" onclick="showTip('${pl.id}',this)">${pl.name}</div><div class="pl-desig">${pl.desig}</div></div>
+    <span class="badge b-cc" style="margin-left:auto">EPR · P&L Head</span>
+    <span class="badge b-ok">${ccEmps.filter(e=>e.status==='Active'&&!e.isVirtual).length} Active</span>
+    ${ccEmps.filter(e=>e.status==='Resigned'&&!e.isVirtual).length>0?`<span class="badge b-rs">${ccEmps.filter(e=>e.status==='Resigned'&&!e.isVirtual).length} Resigned</span>`:''}`;
+  document.getElementById('dept-row').innerHTML=EPR_DEPTS.map(d=>buildDeptCol(d,ccEmps)).join('');
+}
+
+// ── RENDER FINANCE ──
+function renderFinance(ccEmps){
+  const rav=byId['RT0488'];
+  const ish=byId['RT0360'];
+  const vijay=byId['VIRT_VIJAY'];
+  const active=ccEmps.filter(e=>e.status==='Active').length;
+  const resigned=ccEmps.filter(e=>e.status==='Resigned').length;
+  const consultants=ccEmps.filter(e=>e.isConsultant).length;
+
+  // Both Raveendra & Ishant in top bar — co-heads under Vijay Kumar
+  document.getElementById('org-top').innerHTML=`
+    <div class="pl-av" style="background:#5A5652;color:#F0EEE9;font-size:11px;border:1px dashed #999;cursor:pointer" onclick="showTip('${vijay.id}',this)">${ini(vijay.name)}</div>
+    <div style="margin-right:4px">
+      <div style="font-size:12px;font-weight:600;color:var(--text2)">${vijay.name}</div>
+      <div style="font-size:10px;color:var(--text3)">${vijay.desig}</div>
+    </div>
+    <span style="font-size:18px;color:var(--border2);margin:0 6px">↓</span>
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 12px;border:1px solid var(--blue-l);border-radius:var(--r);background:var(--blue-l)">
+      <div class="pl-av av-blue">${ini(rav.name)}</div>
+      <div>
+        <div class="pl-name" onclick="showTip('${rav.id}',this)">${rav.name}</div>
+        <div class="pl-desig">${rav.desig}</div>
+      </div>
+    </div>
+    <div style="font-size:13px;color:var(--border2);margin:0 4px">·</div>
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 12px;border:1px solid var(--indigo-l);border-radius:var(--r);background:var(--indigo-l)">
+      <div class="pl-av av-indigo">${ini(ish.name)}</div>
+      <div>
+        <div class="pl-name" onclick="showTip('${ish.id}',this)">${ish.name}</div>
+        <div class="pl-desig">${ish.desig}</div>
+      </div>
+    </div>
+    <span class="badge" style="margin-left:auto;background:var(--blue-l);color:var(--blue-d)">Finance &amp; Legal</span>
+    <span class="badge b-ok">${active} Active</span>
+    ${resigned>0?`<span class="badge b-rs">${resigned} Resigned</span>`:''}
+    ${consultants>0?`<span class="badge" style="background:var(--amber-l);color:var(--amber-d)">${consultants} Consultants</span>`:''}`;
+
+  // Finance columns (under Raveendra) + Legal column (under Ishant) — same pattern as EPR
+  document.getElementById('dept-row').innerHTML=FINANCE_DEPTS.map(dept=>{
+    const col=DEPT_C[dept.color]||DEPT_C.gray;
+    const headId=dept.topLevelIds[0];
+    const headReps=getAllReportees(headId);
+    const activeCnt=[byId[headId],...headReps].filter(e=>e&&e.status==='Active'&&!e.isVirtual&&!e.excludeFromCount).length;
+    const topCards=dept.topLevelIds.map(id=>byId[id]).filter(Boolean)
+      .map(e=>renderTopCard(e,dept.color)).join('');
+    return`<div class="dept-col">
+      <div class="dept-hd">
+        <div class="dept-hd-row">
+          <div class="dept-title"><span class="dept-dot" style="background:${col.dot}"></span>${dept.key}</div>
+          <span class="dept-cnt" style="background:${col.light};color:${col.text}">${activeCnt}</span>
+        </div>
+      </div>
+      <div class="dept-body">${topCards}</div>
+      ${buildKRAFooter(dept.key, col)}
+    </div>`;
+  }).join('');
+}
+
+// Helper: get all reportees recursively
+function getAllReportees(id){
+  const direct=reps(id);
+  return direct.reduce((acc,r)=>[...acc,...getAllReportees(r.id)],[...direct]);
+}
+
+// ── RENDER GENERIC CC ──
+function renderGenericCC(cc,ccEmps){
+  const ccIds=new Set(ccEmps.map(e=>e.id));
+  const depts=[...new Set(ccEmps.map(e=>e.dept).filter(Boolean))];
+  document.getElementById('org-top').innerHTML=`
+    <div style="font-size:14px;font-weight:600">${cc} Cost Center</div>
+    <span class="badge b-cc" style="margin-left:auto">${cc}</span>
+    <span class="badge b-ok">${ccEmps.filter(e=>e.status==='Active').length} Active</span>`;
+  if(!depts.length){
+    document.getElementById('dept-row').innerHTML=`<div style="padding:40px;color:var(--text3);text-align:center;width:100%">No data for ${cc}.<br><span style="font-size:11px">Upload a CSV for this cost center.</span></div>`;
+    return;
+  }
+  document.getElementById('dept-row').innerHTML=depts.map(dept=>{
+    const de=ccEmps.filter(e=>e.dept===dept);
+    const roots=de.filter(e=>!ccIds.has(e.mgrid));
+    return`<div class="dept-col">
+      <div class="dept-hd"><div class="dept-hd-row">
+        <div class="dept-title"><span class="dept-dot" style="background:var(--text3)"></span>${dept||'Unassigned'}</div>
+        <span class="dept-cnt" style="background:var(--surface2);color:var(--text2)">${de.filter(e=>e.status==='Active').length}</span>
+      </div></div>
+      <div class="dept-body">${roots.map(e=>renderTopCard(e,'gray',false)).join('')}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── KRA PLACEHOLDER DATA (will be populated per dept when data is available) ──
+const KRA_DATA = {};
+// Format: KRA_DATA["Sales"] = [{text:"Revenue Target",color:"purple"},{text:"New Accounts",color:"teal"}]
+
+function buildKRAFooter(deptKey, col){
+  const kras = KRA_DATA[deptKey] || [];
+  const dotColor = col ? col.dot : '#5A5652';
+  const lightColor = col ? col.light : '#F0EEE9';
+  const textColor = col ? col.text : '#3A3835';
+  const items = kras.length > 0
+    ? kras.map(k=>`<div class="kra-item">
+        <span class="kra-item-dot" style="background:${dotColor}"></span>
+        <span style="flex:1">${k.text}</span>
+      </div>`).join('')
+    : `<div class="kra-empty" onclick="openKRAEdit('${deptKey}')">+ Add KRAs for ${deptKey}</div>`;
+  return `<div class="dept-foot">
+    <div class="kra-label">
+      <span>KRAs</span>
+      <button class="kra-add-btn" onclick="openKRAEdit('${deptKey}')">+ Add</button>
+    </div>
+    ${items}
+  </div>`;
+}
+
+function openKRAEdit(dept){
+  var current = (KRA_DATA[dept]||[]).map(function(k){return k.text;}).join('\n');
+  var input = prompt('KRAs for ' + dept + ' (one per line):', current||'');
+  if(input === null) return;
+  KRA_DATA[dept] = input.split('\n').filter(function(x){return x.trim();}).map(function(t){return {text:t.trim()};});
+  render(currentCC);
+}
+
+// ── MAIN RENDER ──
+let currentCC = "EPR";
+function fmt(n){
+  if(!n||n===0)return'—';
+  if(n>=1e7)return'₹'+(n/1e7).toFixed(1)+'Cr';
+  if(n>=1e5)return'₹'+(n/1e5).toFixed(1)+'L';
+  return'₹'+n.toLocaleString('en-IN');
+}
+
+function renderPC(ccEmps){
+  const pl=byId['RT0377'];
+  const active=ccEmps.filter(e=>e.status==='Active').length;
+  const totalCost=ccEmps.filter(e=>e.status==='Active').reduce((s,e)=>s+(e.cost||0),0);
+  document.getElementById('org-top').innerHTML=`
+    <div class="pl-av av-rose">${ini(pl.name)}</div>
+    <div><div class="pl-name" onclick="showTip('${pl.id}',this)">${pl.name}</div>
+    <div class="pl-desig">${pl.desig}</div></div>
+    <span class="badge b-cc" style="margin-left:auto;background:var(--rose-l);color:var(--rose-d)">P&amp;C</span>
+    <span class="badge b-ok">${active} Active</span>
+    <span class="badge" style="background:var(--amber-l);color:var(--amber-d)">${fmt(totalCost)}</span>`;
+  document.getElementById('dept-row').innerHTML=PC_DEPTS.map(d=>buildDeptCol(d,ccEmps)).join('');
+}
+
+function renderTech(ccEmps){
+  var vikram=byId['VIRT_VIKRAM'];
+  var active=ccEmps.filter(function(e){return e.status==='Active'&&!e.isVirtual;}).length;
+  var resigned=ccEmps.filter(function(e){return e.status==='Resigned'&&!e.isVirtual;}).length;
+  var totalCost=ccEmps.filter(function(e){return e.status==='Active'&&!e.isVirtual;}).reduce(function(s,e){return s+(e.cost||0);},0);
+  document.getElementById('org-top').innerHTML=
+    '<div class="pl-av av-gray" style="border:2px dashed #C4A97A">'+ini(vikram.name)+'</div>'+
+    '<div><div class="pl-name" onclick="showTip(&apos;VIRT_VIKRAM&apos;,this)">'+vikram.name+'</div>'+
+    '<div class="pl-desig">'+vikram.desig+' <span style="font-size:10px;color:var(--text3)">(External)</span></div></div>'+
+    '<span class="badge b-cc" style="margin-left:auto;background:var(--blue-l);color:var(--blue-d)">Technology</span>'+
+    '<span class="badge b-ok">'+active+' Active</span>'+
+    (resigned>0?'<span class="badge b-rs">'+resigned+' Resigned</span>':'')+
+    '<span class="badge" style="background:var(--amber-l);color:var(--amber-d)">'+fmt(totalCost)+'</span>';
+  document.getElementById('dept-row').innerHTML=TECH_DEPTS.map(function(d){return buildDeptCol(d,ccEmps);}).join('');
+}
+
+function renderRetearn(ccEmps){
+  var sujan=byId['VIRT_SUJAN'];
+  var active=ccEmps.filter(function(e){return e.status==='Active'&&!e.isVirtual;}).length;
+  var resigned=ccEmps.filter(function(e){return e.status==='Resigned'&&!e.isVirtual;}).length;
+  var totalCost=ccEmps.filter(function(e){return e.status==='Active'&&!e.isVirtual;}).reduce(function(s,e){return s+(e.cost||0);},0);
+  document.getElementById('org-top').innerHTML=
+    '<div class="pl-av av-teal">'+ini(sujan.name)+'</div>'+
+    '<div><div class="pl-name">'+sujan.name+'</div>'+
+    '<div class="pl-desig">'+sujan.desig+'</div></div>'+
+    '<span class="badge b-cc" style="margin-left:auto;background:var(--teal-l);color:var(--teal-d)">Retearn</span>'+
+    '<span class="badge b-ok">'+active+' Active</span>'+
+    (resigned>0?'<span class="badge b-rs">'+resigned+' Resigned</span>':'')+
+    '<span class="badge" style="background:var(--amber-l);color:var(--amber-d)">'+fmt(totalCost)+'</span>';
+  document.getElementById('dept-row').innerHTML=RETEARN_DEPTS.map(function(d){return buildDeptCol(d,ccEmps);}).join('');
+}
+
+function renderInfra(ccEmps){
+  var pl=byId['RT0615'];
+  var active=ccEmps.filter(function(e){return e.status==='Active';}).length;
+  var resigned=ccEmps.filter(function(e){return e.status==='Resigned';}).length;
+  var totalCost=ccEmps.filter(function(e){return e.status==='Active';}).reduce(function(s,e){return s+(e.cost||0);},0);
+  document.getElementById('org-top').innerHTML=
+    '<div class="pl-av av-amber">'+ini(pl.name)+'</div>'+
+    '<div><div class="pl-name" style="cursor:pointer" onclick="showTip(this.getAttribute(\'data-id\'),this)" data-id="'+pl.id+'">'+pl.name+'</div>'+
+    '<div class="pl-desig">'+pl.desig+'</div></div>'+
+    '<span class="badge b-cc" style="margin-left:auto;background:var(--amber-l);color:var(--amber-d)">Infra Business</span>'+
+    '<span class="badge b-ok">'+active+' Active</span>'+
+    (resigned>0?'<span class="badge b-rs">'+resigned+' Resigned</span>':'')+
+    '<span class="badge" style="background:var(--amber-l);color:var(--amber-d)">'+fmt(totalCost)+'</span>';
+  document.getElementById('dept-row').innerHTML=INFRA_DEPTS.map(function(d){return buildDeptCol(d,ccEmps);}).join('');
+}
+
+function renderAWF(ccEmps){
+  var pl=byId['RWF0092'];
+  var active=ccEmps.filter(function(e){return e.status==='Active';}).length;
+  var totalCost=ccEmps.filter(function(e){return e.status==='Active';}).reduce(function(s,e){return s+(e.cost||0);},0);
+  document.getElementById('org-top').innerHTML=
+    '<div class="pl-av av-teal">'+ini(pl.name)+'</div>'+
+    '<div><div class="pl-name" style="cursor:pointer" onclick="showTip(this.dataset.id,this)" data-id="'+pl.id+'">'+pl.name+'</div>'+
+    '<div class="pl-desig">'+pl.desig+'</div></div>'+
+    '<span class="badge b-cc" style="margin-left:auto;background:var(--teal-l);color:var(--teal-d)">AWF</span>'+
+    '<span class="badge b-ok">'+active+' Active</span>'+
+    '<span class="badge" style="background:var(--amber-l);color:var(--amber-d)">'+fmt(totalCost)+'</span>';
+  document.getElementById('dept-row').innerHTML=AWF_DEPTS.map(function(d){return buildDeptCol(d,ccEmps);}).join('');
+}
+
+function renderOC(ccEmps){
+  var pl=byId['RT0800'];
+  var active=ccEmps.filter(function(e){return e.status==='Active';}).length;
+  var totalCost=ccEmps.filter(function(e){return e.status==='Active';}).reduce(function(s,e){return s+(e.cost||0);},0);
+  document.getElementById('org-top').innerHTML=
+    '<div class="pl-av av-blue">'+ini(pl.name)+'</div>'+
+    '<div><div class="pl-name" style="cursor:pointer" onclick="showTip(this.dataset.id,this)" data-id="'+pl.id+'">'+pl.name+'</div>'+
+    '<div class="pl-desig">'+pl.desig+'</div></div>'+
+    '<span class="badge b-cc" style="margin-left:auto;background:var(--blue-l);color:var(--blue-d)">Onboarding &amp; Collection</span>'+
+    '<span class="badge b-ok">'+active+' Active</span>'+
+    '<span class="badge" style="background:var(--amber-l);color:var(--amber-d)">'+fmt(totalCost)+'</span>';
+  document.getElementById('dept-row').innerHTML=OC_DEPTS.map(function(d){return buildDeptCol(d,ccEmps);}).join('');
+}
+
+function renderFacility(ccEmps){
+  var active=ccEmps.filter(function(e){return e.status==='Active';}).length;
+  var totalCost=ccEmps.filter(function(e){return e.status==='Active';}).reduce(function(s,e){return s+(e.cost||0);},0);
+  document.getElementById('org-top').innerHTML=
+    '<div class="pl-av av-gray" style="font-size:10px">FM</div>'+
+    '<div><div style="font-size:14px;font-weight:600">Facility Management</div>'+
+    '<div class="pl-desig">Managed by Shanmugam Aruna (external)</div></div>'+
+    '<span class="badge b-cc" style="margin-left:auto;background:var(--gray-l,#F0EEE9);color:#3A3835">Facility Mgmt</span>'+
+    '<span class="badge b-ok">'+active+' Active</span>'+
+    '<span class="badge" style="background:var(--amber-l);color:var(--amber-d)">'+fmt(totalCost)+'</span>';
+  document.getElementById('dept-row').innerHTML=FACILITY_DEPTS.map(function(d){return buildDeptCol(d,ccEmps);}).join('');
+}
+
+function renderCompliance(ccEmps){
+  var pl=byId['RT0994'];
+  var active=ccEmps.filter(function(e){return e.status==='Active';}).length;
+  var totalCost=ccEmps.filter(function(e){return e.status==='Active';}).reduce(function(s,e){return s+(e.cost||0);},0);
+  document.getElementById('org-top').innerHTML=
+    '<div class="pl-av av-amber">'+ini(pl.name)+'</div>'+
+    '<div><div class="pl-name" style="cursor:pointer" onclick="showTip(this.dataset.id,this)" data-id="'+pl.id+'">'+pl.name+'</div>'+
+    '<div class="pl-desig">'+pl.desig+'</div></div>'+
+    '<span class="badge b-cc" style="margin-left:auto;background:var(--amber-l);color:var(--amber-d)">Compliance</span>'+
+    '<span class="badge b-ok">'+active+' Active</span>'+
+    '<span class="badge" style="background:var(--amber-l);color:var(--amber-d)">'+fmt(totalCost)+'</span>';
+  document.getElementById('dept-row').innerHTML=COMPLIANCE_DEPTS.map(function(d){return buildDeptCol(d,ccEmps);}).join('');
+}
+
+function renderAFR(ccEmps){
+  var active=ccEmps.filter(function(e){return e.status==='Active';}).length;
+  var resigned=ccEmps.filter(function(e){return e.status==='Resigned';}).length;
+  var totalCost=ccEmps.filter(function(e){return e.status==='Active';}).reduce(function(s,e){return s+(e.cost||0);},0);
+  document.getElementById('org-top').innerHTML=
+    '<div class="pl-av av-gray" style="font-size:10px">AFR</div>'+
+    '<div><div style="font-size:14px;font-weight:600">AFR</div>'+
+    '<div class="pl-desig">Reporting to Ekta Narain &amp; Ila Florance Joseph</div></div>'+
+    '<span class="badge b-cc" style="margin-left:auto">AFR</span>'+
+    '<span class="badge b-ok">'+active+' Active</span>'+
+    (resigned>0?'<span class="badge b-rs">'+resigned+' Resigned</span>':'')+
+    '<span class="badge" style="background:var(--amber-l);color:var(--amber-d)">'+fmt(totalCost)+'</span>';
+  document.getElementById('dept-row').innerHTML=AFR_DEPTS.map(function(d){return buildDeptCol(d,ccEmps);}).join('');
+}
+
+function render(cc){
+  currentCC = cc;
+  const ccEmps=cc==='Finance'
+    ? EMP.filter(e=>e.cc==='Finance')
+    : EMP.filter(e=>e.cc===cc);
+  buildStats(ccEmps,cc);
+  if(cc==='EPR')renderEPR(ccEmps);
+  else if(cc==='AFR')renderAFR(ccEmps);
+  else if(cc==='Finance')renderFinance(ccEmps);
+  else if(cc==='PC')renderPC(ccEmps);
+  else if(cc==='Technology')renderTech(ccEmps);
+  else if(cc==='Retearn')renderRetearn(ccEmps);
+  else if(cc==='Infra')renderInfra(ccEmps);
+  else if(cc==='AWF')renderAWF(ccEmps);
+  else if(cc==='OC')renderOC(ccEmps);
+  else if(cc==='Facility')renderFacility(ccEmps);
+  else if(cc==='Compliance')renderCompliance(ccEmps);
+  else renderGenericCC(cc,ccEmps);
+}
+
+function selectCC(btn,cc){
+  document.querySelectorAll('.cc-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');hideTip();render(cc);
+}
+
+document.getElementById('nav-date').textContent=new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')hideTip();});
+render('EPR');
+</script>
+</body>
+</html>
