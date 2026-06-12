@@ -156,6 +156,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
   <span class="cc-label">Cost Center</span>
   <button class="cc-btn active" onclick="selectCC(this,'EPR')">EPR</button>
   <button class="cc-btn" onclick="selectCC(this,'AFR')">AFR</button>
+  <button class="cc-btn" onclick="selectCC(this,'Marketing')">Marketing</button>
   <button class="cc-btn" onclick="selectCC(this,'TBD')">TBD</button>
   <button class="cc-btn" onclick="selectCC(this,'AWF')">AWF</button>
   <button class="cc-btn" onclick="selectCC(this,'OC')">Onboarding &amp; Collection</button>
@@ -593,6 +594,33 @@ const EMP = [
   {id:"RT0966",name:"Pydi Sivaram",doj:"05-Jan-26",desig:"Assistant Manager",mgr:"G.Ramesh",mgrid:"RT0106",status:"Active",cc:"AFR",dept:"Operations",sub:"",cost:1050000},
   {id:"FFIRT00496",name:"Ankur Gupta",doj:"05-Jan-26",desig:"Senior Executive",mgr:"Tushar Sachdeva",mgrid:"RT0891",status:"Active",cc:"AFR",dept:"Operations",sub:"",cost:650000},
   {id:"RT0972",name:"Charan Kumar Bojja",doj:"22-Jan-26",desig:"Assistant General Manager",mgr:"Ekta Narain",mgrid:"RT0130",status:"Resigned",cc:"AFR",dept:"Operations",sub:"",cost:636712},
+,
+  // ── MARKETING ──
+  {id:"RT0032",name:"Chetan Baregar",doj:"05-Dec-16",desig:"Senior Director - Marketing",mgr:"Abhishek Arvind Deshpande",mgrid:"RT0005",status:"Active",cc:"Marketing",dept:"Marketing",sub:"Marketing",cost:3531000},
+  {id:"RT0517",name:"Devershetty Shreyas",doj:"09-Jan-23",desig:"Assistant General Manager",mgr:"Chetan Baregar",mgrid:"RT0032",status:"Active",cc:"Marketing",dept:"Marketing",sub:"Growth",cost:2808000},
+  {id:"RT0286",name:"Ivaturi Ramakrishna",doj:"20-Oct-21",desig:"Manager - Marketing",mgr:"Devershetty Shreyas",mgrid:"RT0517",status:"Active",cc:"Marketing",dept:"Acquisition",sub:"Acquisition",cost:1261200},
+  {id:"RT0327",name:"Mylavarapu Vinod Kumar",doj:"03-Jan-22",desig:"Assistant Manager - Content",mgr:"Alokesh Sinha",mgrid:"RT0715",status:"Active",cc:"Marketing",dept:"Branding",sub:"Design",cost:1100000},
+  {id:"RT0480",name:"Ayesha Ishrat",doj:"19-Sep-22",desig:"Manager - Engagement",mgr:"Devershetty Shreyas",mgrid:"RT0517",status:"Active",cc:"Marketing",dept:"Engagement",sub:"Support",cost:1110100},
+  {id:"RT0715",name:"Alokesh Sinha",doj:"01-Aug-24",desig:"Manager - Marketing",mgr:"Chetan Baregar",mgrid:"RT0032",status:"Active",cc:"Marketing",dept:"Branding",sub:"Communication",cost:1169600},
+  {id:"RT0899",name:"Sidra S Khan",doj:"18-Aug-25",desig:"PR Specialist",mgr:"Nellutla Nehaal Rao",mgrid:"RT0533",status:"Resigned",cc:"Marketing",dept:"Branding",sub:"PR",cost:850000},
+  {id:"FFIRT00357",name:"Borra Lakshmi Kranthi Kumar",doj:"16-Jun-25",desig:"Graphic Designer",mgr:"Mylavarapu Vinod Kumar",mgrid:"RT0327",status:"Active",cc:"Marketing",dept:"Branding",sub:"Design",cost:450000},
+  {id:"RT0636",name:"Yash Nevatia",doj:"12-Dec-23",desig:"Executive",mgr:"Nellutla Nehaal Rao",mgrid:"RT0533",status:"Active",cc:"Marketing",dept:"Branding",sub:"Events",cost:637800},
+  {id:"FFIRT00234",name:"Pradyumn C Yadav",doj:"16-Jan-24",desig:"Executive - Content Writer",mgr:"Ayantika Dhar",mgrid:"FFIRT00376",status:"Active",cc:"Marketing",dept:"Branding",sub:"Content",cost:587542},
+  {id:"FFIRT00249",name:"Mukka Aashritha",doj:"04-Mar-24",desig:"Graphic Designer",mgr:"Mylavarapu Vinod Kumar",mgrid:"RT0327",status:"Active",cc:"Marketing",dept:"Branding",sub:"Design",cost:537690},
+  {id:"FFIRT00279",name:"Majjari Venkata Yogendra",doj:"24-Jun-24",desig:"Executive - Market Research",mgr:"Ivaturi Ramakrishna",mgrid:"RT0286",status:"Active",cc:"Marketing",dept:"Acquisition",sub:"Outbound",cost:428750},
+  {id:"FFIRT00313",name:"Pallapati Shalin",doj:"24-Oct-24",desig:"Executive",mgr:"Ayesha Ishrat",mgrid:"RT0480",status:"Active",cc:"Marketing",dept:"Engagement",sub:"NA",cost:550000},
+  {id:"FFIRT00376",name:"Ayantika Dhar",doj:"21-Jul-25",desig:"Senior Executive",mgr:"Alokesh Sinha",mgrid:"RT0715",status:"Active",cc:"Marketing",dept:"Branding",sub:"Content",cost:850000},
+  {id:"RT0533",name:"Nellutla Nehaal Rao",doj:"20-Mar-23",desig:"Manager",mgr:"Devershetty Shreyas",mgrid:"RT0517",status:"Resigned",cc:"Marketing",dept:"Branding",sub:"Events",cost:1614100},
+  {id:"FFIRT00447",name:"Maduka Shiva Prasad",doj:"08-Sep-25",desig:"Marketing Analyst",mgr:"Ivaturi Ramakrishna",mgrid:"RT0286",status:"Active",cc:"Marketing",dept:"Acquisition",sub:"Inbound",cost:600000},
+  {id:"RT0934",name:"Guntaka Tarakeshwar Reddy",doj:"01-Oct-25",desig:"Video Editor",mgr:"Alokesh Sinha",mgrid:"RT0715",status:"Active",cc:"Marketing",dept:"Branding",sub:"Design",cost:872000},
+  {id:"FFIRT00486",name:"Gurumoorthy Ekambaram",doj:"03-Nov-25",desig:"Executive",mgr:"Ayesha Ishrat",mgrid:"RT0480",status:"Active",cc:"Marketing",dept:"Engagement",sub:"Projects & Engagements",cost:500000},
+  {id:"FFIRT00479",name:"Nisha Panikatti",doj:"03-Nov-25",desig:"Senior Executive",mgr:"Nellutla Nehaal Rao",mgrid:"RT0533",status:"Active",cc:"Marketing",dept:"Branding",sub:"Events",cost:750000},
+  {id:"RT0943",name:"Akansha Sharma",doj:"10-Nov-25",desig:"Manager",mgr:"Chetan Baregar",mgrid:"RT0032",status:"Active",cc:"Marketing",dept:"Branding",sub:"PR",cost:1600000},
+  {id:"FFIRT00492",name:"Pamulaparthi Sai Kiran",doj:"08-Dec-25",desig:"Senior Executive",mgr:"Alokesh Sinha",mgrid:"RT0715",status:"Active",cc:"Marketing",dept:"Branding",sub:"Content",cost:800000},
+  {id:"FFIRT00501",name:"Ganti Surya Kushal",doj:"22-Jan-26",desig:"Executive",mgr:"Ivaturi Ramakrishna",mgrid:"RT0286",status:"Active",cc:"Marketing",dept:"Acquisition",sub:"Outbound",cost:450000},
+  {id:"RT0977",name:"Shubhanshu Ramashankar Jaiswar",doj:"09-Feb-26",desig:"Management Trainee",mgr:"Devershetty Shreyas",mgrid:"RT0517",status:"Active",cc:"Marketing",dept:"Engagement",sub:"Corporate",cost:800000},
+  {id:"RT0979",name:"Animesh Mohanty",doj:"09-Feb-26",desig:"Management Trainee",mgr:"Devershetty Shreyas",mgrid:"RT0517",status:"Active",cc:"Marketing",dept:"Acquisition",sub:"Acquisition",cost:800000},
+  {id:"FFIRT00504",name:"Ritika Rohit Tewari",doj:"01-Apr-26",desig:"Senior Executive",mgr:"Nellutla Nehaal Rao",mgrid:"RT0533",status:"Active",cc:"Marketing",dept:"Branding",sub:"Events",cost:650000},
 ];
 
 // ── VIRTUAL NODES (external managers not in CSV) ──
@@ -684,6 +712,12 @@ const AFR_DEPTS = [
   {key:"Sales",      color:"purple", topLevelIds:["RT0096","RT0348","RT0373","RT0401"]},
   {key:"Projects",   color:"blue",   topLevelIds:["RT0936","FFIRT00278"]},
   {key:"Operations", color:"teal",   topLevelIds:["RT0972","RT0966","FFIRT00496","FFIRT00332"]}
+];
+
+const MARKETING_DEPTS = [
+  {key:"Branding",    color:"rose",   topLevelIds:["RT0715","RT0943","RT0533"]},
+  {key:"Acquisition", color:"blue",   topLevelIds:["RT0286"]},
+  {key:"Engagement",  color:"teal",   topLevelIds:["RT0480"]}
 ];
 
 const DEPT_C = {
@@ -1152,6 +1186,28 @@ function renderAFR(ccEmps){
   document.getElementById('dept-row').innerHTML=AFR_DEPTS.map(function(d){return buildDeptCol(d,ccEmps);}).join('');
 }
 
+function renderMarketing(ccEmps){
+  var pl=byId['RT0032'];
+  var agm=byId['RT0517'];
+  var active=ccEmps.filter(function(e){return e.status==='Active';}).length;
+  var resigned=ccEmps.filter(function(e){return e.status==='Resigned';}).length;
+  var totalCost=ccEmps.filter(function(e){return e.status==='Active';}).reduce(function(s,e){return s+(e.cost||0);},0);
+  document.getElementById('org-top').innerHTML=
+    '<div class="pl-av av-rose">'+ini(pl.name)+'</div>'+
+    '<div><div class="pl-name" style="cursor:pointer" onclick="showTip(this.dataset.id,this)" data-id="'+pl.id+'">'+pl.name+'</div>'+
+    '<div class="pl-desig">'+pl.desig+'</div></div>'+
+    '<span style="font-size:18px;color:var(--border2);margin:0 6px">→</span>'+
+    '<div style="display:flex;align-items:center;gap:8px;padding:5px 11px;border:1px solid var(--rose-l);border-radius:var(--r);background:var(--rose-l)">'+
+    '<div class="pl-av av-rose" style="width:28px;height:28px;font-size:9px">'+ini(agm.name)+'</div>'+
+    '<div><div class="pl-name" style="font-size:12px;cursor:pointer" onclick="showTip(this.dataset.id,this)" data-id="'+agm.id+'">'+agm.name+'</div>'+
+    '<div class="pl-desig">'+agm.desig+'</div></div></div>'+
+    '<span class="badge b-cc" style="margin-left:auto;background:var(--rose-l);color:var(--rose-d)">Marketing</span>'+
+    '<span class="badge b-ok">'+active+' Active</span>'+
+    (resigned>0?'<span class="badge b-rs">'+resigned+' Resigned</span>':'')+
+    (totalCost>0?'<span class="badge" style="background:var(--amber-l);color:var(--amber-d)">'+fmt(totalCost)+'</span>':'');
+  document.getElementById('dept-row').innerHTML=MARKETING_DEPTS.map(function(d){return buildDeptCol(d,ccEmps);}).join('');
+}
+
 function render(cc){
   currentCC = cc;
   const ccEmps=cc==='Finance'
@@ -1160,6 +1216,7 @@ function render(cc){
   buildStats(ccEmps,cc);
   if(cc==='EPR')renderEPR(ccEmps);
   else if(cc==='AFR')renderAFR(ccEmps);
+  else if(cc==='Marketing')renderMarketing(ccEmps);
   else if(cc==='Finance')renderFinance(ccEmps);
   else if(cc==='PC')renderPC(ccEmps);
   else if(cc==='Technology')renderTech(ccEmps);
